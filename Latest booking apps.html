@@ -1,0 +1,2997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corporate Booking Suite | Office Management</title>
+    <style>
+        /* Monster Hunter Iceborne Inspired Corporate Theme */
+        :root {
+            /* Monster Hunter Iceborne Color Palette - Corporate Adaptation */
+            --mh-dark: #0a0e17;        /* Deep space blue - main background */
+            --mh-deep: #121b2f;         /* Midnight navy - cards/containers */
+            --mh-medium: #1d2b4e;       /* Steel blue - accents */
+            --mh-light: #2a3d6c;        /* Glacier blue - highlights */
+            --mh-accent: #4a6fa5;       /* Frost blue - primary accent */
+            --mh-gold: #d4af37;         /* Ancient gold - secondary accent */
+            --mh-ice: #8fb8de;          /* Ice blue - tertiary accent */
+            --mh-text: #e8eef7;         /* Snow white - main text */
+            --mh-text-secondary: #9ab5d9; /* Frosted blue - secondary text */
+            --mh-border: #354b7a;       /* Deep sea - borders */
+            --mh-success: #5cb85c;      /* Forest green - success */
+            --mh-warning: #f0ad4e;      /* Amber - warning */
+            --mh-error: #d9534f;        /* Crimson - error */
+            
+            /* Monster Hunter Font Sizes */
+            --mh-h1: 3.5rem;            /* Large heroic headers */
+            --mh-h2: 2.5rem;            /* Section headers */
+            --mh-h3: 1.8rem;            /* Card titles */
+            --mh-body: 1.1rem;          /* Body text */
+            --mh-small: 0.95rem;        /* Captions/small text */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            background: var(--mh-dark);
+            color: var(--mh-text);
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(42, 61, 108, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(74, 111, 165, 0.1) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Monster Hunter Inspired Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: var(--mh-h1);
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, var(--mh-text), var(--mh-ice));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: var(--mh-h2);
+            color: var(--mh-text);
+            margin-bottom: 1rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--mh-accent), var(--mh-gold));
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: var(--mh-h3);
+            color: var(--mh-text);
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            font-size: var(--mh-body);
+            color: var(--mh-text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Hero Banner - Monster Hunter Style */
+        .hero-banner {
+            background: linear-gradient(135deg, 
+                var(--mh-deep) 0%, 
+                var(--mh-medium) 50%,
+                var(--mh-dark) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="%231d2b4e" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(74, 111, 165, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .main-header {
+            padding: 2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--mh-gold);
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--mh-text), var(--mh-ice));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Monster Hunter Style Buttons */
+        .mh-btn {
+            padding: 0.8rem 2rem;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mh-btn-primary {
+            background: linear-gradient(135deg, var(--mh-accent), var(--mh-medium));
+            color: var(--mh-text);
+            border: 1px solid var(--mh-border);
+        }
+
+        .mh-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 5px 15px rgba(74, 111, 165, 0.4),
+                0 0 20px rgba(143, 184, 222, 0.3) inset;
+        }
+
+        .mh-btn-secondary {
+            background: transparent;
+            color: var(--mh-text);
+            border: 2px solid var(--mh-border);
+        }
+
+        .mh-btn-secondary:hover {
+            background: rgba(74, 111, 165, 0.1);
+            border-color: var(--mh-accent);
+            transform: translateY(-2px);
+        }
+
+        .mh-btn-gold {
+            background: linear-gradient(135deg, var(--mh-gold), #b8941f);
+            color: var(--mh-dark);
+            font-weight: 700;
+        }
+
+        .mh-btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .mh-btn-success {
+            background: linear-gradient(135deg, var(--mh-success), #4cae4c);
+            color: var(--mh-text);
+        }
+
+        .mh-btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(92, 184, 92, 0.4);
+        }
+
+        .mh-btn-danger {
+            background: linear-gradient(135deg, var(--mh-error), #c9302c);
+            color: var(--mh-text);
+        }
+
+        .mh-btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(217, 83, 79, 0.4);
+        }
+
+        /* Hero Content */
+        .hero-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .booking-container {
+            background: rgba(18, 27, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--mh-border);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 60px rgba(74, 111, 165, 0.1);
+        }
+
+        .booking-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .booking-icon {
+            font-size: 4rem;
+            color: var(--mh-gold);
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.3));
+        }
+
+        /* Monster Hunter Style Form */
+        .mh-form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .mh-form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--mh-text-secondary);
+            font-size: var(--mh-small);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .mh-form-input, .mh-form-select, .mh-form-textarea {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: rgba(29, 43, 78, 0.5);
+            border: 2px solid var(--mh-border);
+            border-radius: 4px;
+            color: var(--mh-text);
+            font-size: var(--mh-body);
+            font-family: 'Rajdhani', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .mh-form-input:focus, .mh-form-select:focus, .mh-form-textarea:focus {
+            outline: none;
+            border-color: var(--mh-accent);
+            box-shadow: 
+                0 0 0 3px rgba(74, 111, 165, 0.2),
+                inset 0 0 20px rgba(74, 111, 165, 0.1);
+            background: rgba(29, 43, 78, 0.8);
+        }
+
+        .mh-form-input::placeholder, .mh-form-textarea::placeholder {
+            color: rgba(154, 181, 217, 0.5);
+        }
+
+        .mh-form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Divider - Monster Hunter Style */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 2rem 0;
+            color: var(--mh-text-secondary);
+            font-size: var(--mh-small);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--mh-border), transparent);
+        }
+
+        .divider span {
+            padding: 0 1rem;
+        }
+
+        /* Dashboard (Hidden Initially) */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .dashboard.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Room Cards - Monster Hunter Style */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .room-card {
+            background: linear-gradient(135deg, 
+                var(--mh-deep) 0%, 
+                rgba(29, 43, 78, 0.8) 100%);
+            border: 1px solid var(--mh-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--mh-accent), var(--mh-gold));
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(74, 111, 165, 0.2);
+            border-color: var(--mh-accent);
+        }
+
+        .room-card.available {
+            border-left: 4px solid var(--mh-success);
+        }
+
+        .room-card.booked {
+            border-left: 4px solid var(--mh-error);
+            opacity: 0.7;
+        }
+
+        .room-card.reserved {
+            border-left: 4px solid var(--mh-warning);
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            background: var(--mh-deep);
+            border: 1px solid var(--mh-border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .current-month {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--mh-text);
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: var(--mh-border);
+            border: 1px solid var(--mh-border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .calendar-day-header {
+            background: var(--mh-medium);
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            color: var(--mh-text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .calendar-day {
+            background: var(--mh-deep);
+            padding: 1rem;
+            min-height: 100px;
+            border: 1px solid var(--mh-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            background: var(--mh-medium);
+        }
+
+        .calendar-day.today {
+            background: rgba(74, 111, 165, 0.2);
+            border: 2px solid var(--mh-accent);
+        }
+
+        .calendar-day.selected {
+            background: var(--mh-accent);
+            color: var(--mh-text);
+        }
+
+        .calendar-day.other-month {
+            color: var(--mh-text-secondary);
+            background: rgba(18, 27, 47, 0.5);
+        }
+
+        .day-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .day-events {
+            font-size: 0.8rem;
+            color: var(--mh-text-secondary);
+        }
+
+        .day-events .event {
+            background: var(--mh-success);
+            color: var(--mh-text);
+            padding: 2px 6px;
+            border-radius: 2px;
+            margin-top: 2px;
+            font-size: 0.75rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Time Slots */
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .time-slot {
+            padding: 0.8rem;
+            background: var(--mh-medium);
+            border: 1px solid var(--mh-border);
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            color: var(--mh-text);
+        }
+
+        .time-slot:hover {
+            background: var(--mh-light);
+            border-color: var(--mh-accent);
+            transform: translateY(-2px);
+        }
+
+        .time-slot.selected {
+            background: var(--mh-accent);
+            color: var(--mh-text);
+            border-color: var(--mh-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
+        }
+
+        .time-slot.booked {
+            background: var(--mh-error);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .time-slot.booked:hover {
+            transform: none;
+            background: var(--mh-error);
+            border-color: var(--mh-border);
+        }
+
+        .time-slot.available {
+            background: var(--mh-medium);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: var(--mh-deep);
+            border: 1px solid var(--mh-border);
+            border-radius: 8px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: var(--mh-medium);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--mh-border);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: rgba(240, 173, 78, 0.15);
+            color: var(--mh-warning);
+            border: 1px solid rgba(240, 173, 78, 0.3);
+        }
+
+        .status-approved {
+            background: rgba(92, 184, 92, 0.15);
+            color: var(--mh-success);
+            border: 1px solid rgba(92, 184, 92, 0.3);
+        }
+
+        .status-rejected {
+            background: rgba(217, 83, 79, 0.15);
+            color: var(--mh-error);
+            border: 1px solid rgba(217, 83, 79, 0.3);
+        }
+
+        .status-active {
+            background: rgba(92, 184, 92, 0.15);
+            color: var(--mh-success);
+            border: 1px solid rgba(92, 184, 92, 0.3);
+        }
+
+        .status-suspended {
+            background: rgba(217, 83, 79, 0.15);
+            color: var(--mh-error);
+            border: 1px solid rgba(217, 83, 79, 0.3);
+        }
+
+        /* Modal for Registration */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 23, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+            to {
+                opacity: 1;
+                backdrop-filter: blur(5px);
+            }
+        }
+
+        .modal-content {
+            background: var(--mh-deep);
+            border: 1px solid var(--mh-border);
+            border-radius: 12px;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--mh-text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-modal:hover {
+            color: var(--mh-text);
+            background: rgba(74, 111, 165, 0.1);
+        }
+
+        /* Tabs */
+        .dashboard-tabs {
+            display: flex;
+            gap: 1px;
+            background: var(--mh-border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: var(--mh-medium);
+            border: none;
+            color: var(--mh-text-secondary);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background: var(--mh-light);
+            color: var(--mh-text);
+        }
+
+        .tab-btn.active {
+            background: var(--mh-accent);
+            color: var(--mh-text);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Booking Form Container */
+        .booking-form-container {
+            background: rgba(18, 27, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2.5rem;
+            border: 1px solid var(--mh-border);
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Flexible Time Booking Styles */
+        .flex-time-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .time-input-wrapper {
+            position: relative;
+        }
+
+        .time-input-wrapper::after {
+            content: attr(data-label);
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--mh-text-secondary);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .duration-display {
+            text-align: center;
+            color: var(--mh-text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .duration-display span {
+            color: var(--mh-accent);
+        }
+
+        /* Conflict Warning */
+        .conflict-warning {
+            display: none;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(217, 83, 79, 0.1);
+            border-left: 4px solid var(--mh-error);
+            border-radius: 4px;
+            animation: shake 0.5s ease;
+        }
+
+        .conflict-warning.show {
+            display: block;
+        }
+
+        .conflict-warning h4 {
+            color: var(--mh-error);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        /* Suggested Slots */
+        .suggested-slots {
+            display: none;
+            margin: 1.5rem 0;
+        }
+
+        .suggested-slots.show {
+            display: block;
+        }
+
+        .suggested-slots h4 {
+            color: var(--mh-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .suggested-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
+
+        /* User Management Styles */
+        .user-management-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .user-card {
+            background: var(--mh-deep);
+            border: 1px solid var(--mh-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .user-card:hover {
+            border-color: var(--mh-accent);
+            transform: translateY(-2px);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-info h4 {
+            color: var(--mh-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .user-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--mh-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .edit-btn {
+            background: var(--mh-accent);
+            color: var(--mh-text);
+        }
+
+        .edit-btn:hover {
+            background: var(--mh-light);
+        }
+
+        .suspend-btn {
+            background: var(--mh-warning);
+            color: var(--mh-text);
+        }
+
+        .suspend-btn:hover {
+            background: #ec971f;
+        }
+
+        .delete-btn {
+            background: var(--mh-error);
+            color: var(--mh-text);
+        }
+
+        .delete-btn:hover {
+            background: #c9302c;
+        }
+
+        /* Fix for submit button issue */
+        .submit-btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .submit-btn-group .mh-btn {
+            flex: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            :root {
+                --mh-h1: 2.5rem;
+                --mh-h2: 2rem;
+                --mh-h3: 1.5rem;
+                --mh-body: 1rem;
+            }
+
+            .main-header {
+                padding: 1.5rem;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .hero-content {
+                padding: 0 1.5rem;
+            }
+
+            .booking-container {
+                padding: 2rem;
+            }
+
+            .rooms-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-grid {
+                grid-template-columns: repeat(7, 1fr);
+            }
+
+            .calendar-day {
+                padding: 0.5rem;
+                min-height: 80px;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-tabs {
+                flex-direction: column;
+            }
+            
+            .booking-form-container {
+                padding: 1.5rem;
+            }
+
+            .flex-time-container {
+                grid-template-columns: 1fr;
+            }
+
+            .suggested-slots-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .user-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .user-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        /* Custom Scrollbar - Monster Hunter Style */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--mh-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--mh-medium);
+            border-radius: 5px;
+            border: 2px solid var(--mh-dark);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--mh-accent);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Hero Banner / Front Page -->
+    <div class="hero-banner" id="frontPage">
+        <div class="banner-overlay"></div>
+        
+        <header class="main-header">
+            <div class="logo">
+                <i class="fas fa-building-columns logo-icon"></i>
+                <span class="logo-text">CORPSUITE</span>
+            </div>
+            <div class="auth-actions">
+                <button class="mh-btn mh-btn-primary" id="showLogin">
+                    <i class="fas fa-sign-in-alt"></i> SIGN IN
+                </button>
+                <button class="mh-btn mh-btn-secondary" id="showRegister">
+                    <i class="fas fa-user-plus"></i> CREATE ACCOUNT
+                </button>
+            </div>
+        </header>
+
+        <div class="hero-content">
+            <div class="booking-container">
+                <div class="booking-header">
+                    <i class="fas fa-door-closed booking-icon"></i>
+                    <h2>OFFICE SPACE BOOKING</h2>
+                    <p>Reserve meeting rooms and workspaces seamlessly</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="mh-form-group">
+                        <label class="mh-form-label" for="username">
+                            <i class="fas fa-user"></i> USERNAME
+                        </label>
+                        <input type="text" 
+                               id="username" 
+                               class="mh-form-input" 
+                               placeholder="Enter your username"
+                               required>
+                    </div>
+
+                    <div class="mh-form-group">
+                        <label class="mh-form-label" for="password">
+                            <i class="fas fa-lock"></i> PASSWORD
+                        </label>
+                        <input type="password" 
+                               id="password" 
+                               class="mh-form-input" 
+                               placeholder="Enter your password"
+                               required>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" style="accent-color: var(--mh-accent);">
+                            <span style="color: var(--mh-text-secondary); font-size: 0.9rem;">Remember me</span>
+                        </label>
+                        <a href="#" style="color: var(--mh-accent); text-decoration: none; font-size: 0.9rem;">
+                            Forgot password?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="mh-btn mh-btn-primary" style="width: 100%;">
+                        <i class="fas fa-key"></i> ACCESS DASHBOARD
+                    </button>
+
+                    <div class="divider">
+                        <span>NEW TO CORPSUITE?</span>
+                    </div>
+
+                    <button type="button" class="mh-btn mh-btn-gold" style="width: 100%;" id="showRegisterBtn">
+                        <i class="fas fa-user-plus"></i> REGISTER NEW ACCOUNT
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            
+            <div class="booking-header" style="margin-bottom: 1.5rem;">
+                <i class="fas fa-user-plus booking-icon"></i>
+                <h2>CREATE ACCOUNT</h2>
+                <p>Register for corporate booking access</p>
+            </div>
+
+            <form id="registerForm">
+                <div class="mh-form-group">
+                    <label class="mh-form-label" for="regName">
+                        <i class="fas fa-id-card"></i> FULL NAME
+                    </label>
+                    <input type="text" 
+                           id="regName" 
+                           class="mh-form-input" 
+                           placeholder="Enter your full name"
+                           required>
+                </div>
+
+                <div class="mh-form-group">
+                    <label class="mh-form-label" for="regEmail">
+                        <i class="fas fa-envelope"></i> CORPORATE EMAIL
+                    </label>
+                    <input type="email" 
+                           id="regEmail" 
+                           class="mh-form-input" 
+                           placeholder="name@company.com"
+                           required>
+                </div>
+
+                <div class="mh-form-group">
+                    <label class="mh-form-label" for="regUsername">
+                        <i class="fas fa-user"></i> USERNAME
+                    </label>
+                    <input type="text" 
+                           id="regUsername" 
+                           class="mh-form-input" 
+                           placeholder="Choose a username"
+                           required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="mh-form-group">
+                        <label class="mh-form-label" for="regPassword">
+                            <i class="fas fa-lock"></i> PASSWORD
+                        </label>
+                        <input type="password" 
+                               id="regPassword" 
+                               class="mh-form-input" 
+                               placeholder="Minimum 8 characters"
+                               required>
+                    </div>
+
+                    <div class="mh-form-group">
+                        <label class="mh-form-label" for="regConfirmPassword">
+                            <i class="fas fa-lock"></i> CONFIRM
+                        </label>
+                        <input type="password" 
+                               id="regConfirmPassword" 
+                               class="mh-form-input" 
+                               placeholder="Confirm password"
+                               required>
+                    </div>
+                </div>
+
+                <div class="mh-form-group">
+                    <label class="mh-form-label" for="regDepartment">
+                        <i class="fas fa-building"></i> DEPARTMENT
+                    </label>
+                    <select id="regDepartment" class="mh-form-input" required>
+                        <option value="">Select department</option>
+                        <option value="it">Information Technology</option>
+                        <option value="hr">Human Resources</option>
+                        <option value="sales">Sales & Marketing</option>
+                        <option value="finance">Finance</option>
+                        <option value="operations">Operations</option>
+                        <option value="executive">Executive</option>
+                    </select>
+                </div>
+
+                <div style="margin: 1.5rem 0;">
+                    <label style="display: flex; align-items: start; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" style="accent-color: var(--mh-accent); margin-top: 0.2rem;">
+                        <span style="color: var(--mh-text-secondary); font-size: 0.9rem;">
+                            I agree to the <a href="#" style="color: var(--mh-accent);">Terms of Service</a> 
+                            and <a href="#" style="color: var(--mh-accent);">Privacy Policy</a>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="submit-btn-group">
+                    <button type="submit" class="mh-btn mh-btn-gold">
+                        <i class="fas fa-check-circle"></i> COMPLETE REGISTRATION
+                    </button>
+                    <button type="button" class="mh-btn mh-btn-secondary" id="cancelRegister">
+                        CANCEL
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard (Initially Hidden) -->
+    <div class="dashboard" id="dashboard">
+        <header class="main-header">
+            <div class="logo">
+                <i class="fas fa-building-columns logo-icon"></i>
+                <span class="logo-text">CORPSUITE</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <span id="userWelcome" style="color: var(--mh-text-secondary);"></span>
+                <button class="mh-btn mh-btn-secondary" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> LOGOUT
+                </button>
+            </div>
+        </header>
+
+        <main style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+            <h1 style="margin-bottom: 0.5rem;">BOOKING DASHBOARD</h1>
+            <p style="margin-bottom: 2rem; color: var(--mh-text-secondary);">
+                Manage your office space reservations and resources
+            </p>
+
+            <!-- Dashboard Tabs -->
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" data-tab="overview">Overview</button>
+                <button class="tab-btn" data-tab="calendar">Calendar</button>
+                <button class="tab-btn" data-tab="rooms">Room Booking</button>
+                <button class="tab-btn" data-tab="my-bookings">My Bookings</button>
+                <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display: none;">Admin</button>
+                <button class="tab-btn" data-tab="users" id="usersTabBtn" style="display: none;">Users</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overviewTab" class="tab-content active">
+                <!-- Quick Stats -->
+                <div class="rooms-grid">
+                    <div class="room-card">
+                        <h3><i class="fas fa-calendar-check" style="color: var(--mh-accent); margin-right: 0.5rem;"></i> My Bookings</h3>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--mh-text); margin: 1rem 0;" id="myBookingsCount">0</p>
+                        <p style="color: var(--mh-text-secondary);">Active reservations</p>
+                    </div>
+
+                    <div class="room-card">
+                        <h3><i class="fas fa-door-open" style="color: var(--mh-success); margin-right: 0.5rem;"></i> Available Rooms</h3>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--mh-text); margin: 1rem 0;" id="availableRoomsCount">0</p>
+                        <p style="color: var(--mh-text-secondary);">Currently vacant</p>
+                    </div>
+
+                    <div class="room-card">
+                        <h3><i class="fas fa-clock" style="color: var(--mh-gold); margin-right: 0.5rem;"></i> Upcoming</h3>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--mh-text); margin: 1rem 0;" id="upcomingCount">0</p>
+                        <p style="color: var(--mh-text-secondary);">Today's meetings</p>
+                    </div>
+                </div>
+
+                <!-- Upcoming Bookings -->
+                <div style="margin: 3rem 0;">
+                    <h2 style="margin-bottom: 1.5rem;">UPCOMING BOOKINGS</h2>
+                    <div class="admin-panel">
+                        <div class="panel-header">
+                            <h3>Your Scheduled Meetings</h3>
+                        </div>
+                        <div style="padding: 1.5rem;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--mh-border);">
+                                        <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Room</th>
+                                        <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Date</th>
+                                        <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Time</th>
+                                        <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Purpose</th>
+                                        <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="upcomingBookings">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="calendarTab" class="tab-content">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-nav">
+                            <button class="mh-btn mh-btn-secondary" id="prevMonth">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h2 class="current-month" id="currentMonth">February 2024</h2>
+                            <button class="mh-btn mh-btn-secondary" id="nextMonth">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <button class="mh-btn mh-btn-gold" id="goToday">
+                            <i class="fas fa-calendar-day"></i> TODAY
+                        </button>
+                    </div>
+                    
+                    <div class="calendar-grid" id="calendar">
+                        <!-- Calendar will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Booking Tab - FIXED SUBMIT BUTTON -->
+            <div id="roomsTab" class="tab-content">
+                <div class="booking-form-container">
+                    <h2 style="margin-bottom: 1rem;"><i class="fas fa-calendar-plus"></i> BOOK A ROOM</h2>
+                    <p style="color: var(--mh-text-secondary); margin-bottom: 2rem;">Select a room and choose your preferred time slot</p>
+                    
+                    <form id="quickBookingForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="mh-form-group">
+                                <label class="mh-form-label" for="roomSelect">
+                                    <i class="fas fa-door-closed"></i> SELECT ROOM
+                                </label>
+                                <select id="roomSelect" class="mh-form-select" required>
+                                    <option value="">Select a room...</option>
+                                    <!-- Rooms will be populated by JavaScript -->
+                                </select>
+                            </div>
+                            
+                            <div class="mh-form-group">
+                                <label class="mh-form-label" for="quickBookingDate">
+                                    <i class="fas fa-calendar"></i> DATE
+                                </label>
+                                <input type="date" 
+                                       id="quickBookingDate" 
+                                       class="mh-form-input" 
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <!-- Flexible Time Selection -->
+                        <div class="flex-time-container">
+                            <div class="time-input-wrapper" data-label="Start">
+                                <label class="mh-form-label" for="startTime">
+                                    <i class="fas fa-clock"></i> START TIME
+                                </label>
+                                <input type="time" 
+                                       id="startTime" 
+                                       class="mh-form-input" 
+                                       min="08:00" 
+                                       max="18:00" 
+                                       step="900"
+                                       value="09:00"
+                                       required>
+                            </div>
+                            
+                            <div class="time-input-wrapper" data-label="End">
+                                <label class="mh-form-label" for="endTime">
+                                    <i class="fas fa-clock"></i> END TIME
+                                </label>
+                                <input type="time" 
+                                       id="endTime" 
+                                       class="mh-form-input" 
+                                       min="08:00" 
+                                       max="18:00" 
+                                       step="900"
+                                       value="10:00"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="duration-display">
+                            Duration: <span id="durationDisplay">1 hour</span>
+                        </div>
+                        
+                        <!-- Conflict Warning -->
+                        <div class="conflict-warning" id="conflictWarning">
+                            <h4><i class="fas fa-exclamation-triangle"></i> TIME CONFLICT DETECTED</h4>
+                            <p id="conflictDetails" style="color: var(--mh-text-secondary); font-size: 0.9rem;">
+                                The selected time conflicts with an existing booking.
+                            </p>
+                        </div>
+                        
+                        <!-- Suggested Slots -->
+                        <div class="suggested-slots" id="suggestedSlots">
+                            <h4><i class="fas fa-calendar-check"></i> SUGGESTED AVAILABLE SLOTS</h4>
+                            <div class="suggested-slots-grid" id="suggestedSlotsGrid">
+                                <!-- Suggested slots will appear here -->
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="mh-form-group">
+                                <label class="mh-form-label" for="quickPurpose">
+                                    <i class="fas fa-comment"></i> PURPOSE
+                                </label>
+                                <textarea id="quickPurpose" 
+                                          class="mh-form-textarea" 
+                                          placeholder="Enter meeting purpose..."
+                                          required></textarea>
+                            </div>
+                            
+                            <div class="mh-form-group">
+                                <label class="mh-form-label" for="quickAttendees">
+                                    <i class="fas fa-users"></i> ATTENDEES
+                                </label>
+                                <input type="number" 
+                                       id="quickAttendees" 
+                                       class="mh-form-input" 
+                                       min="1" 
+                                       max="50" 
+                                       placeholder="Number of attendees"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <!-- FIXED: Submit button group with proper spacing -->
+                        <div class="submit-btn-group">
+                            <button type="button" class="mh-btn mh-btn-secondary" id="checkAvailabilityBtn">
+                                <i class="fas fa-search"></i> CHECK AVAILABILITY
+                            </button>
+                            <button type="submit" class="mh-btn mh-btn-gold" id="submitBookingBtn">
+                                <i class="fas fa-calendar-plus"></i> SUBMIT BOOKING
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Room Information Cards -->
+                <div style="margin-top: 2rem;">
+                    <h2 style="margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> ROOM INFORMATION</h2>
+                    <p style="color: var(--mh-text-secondary); margin-bottom: 1.5rem;">View details about available rooms</p>
+                    <div class="rooms-grid" id="roomsList">
+                        <!-- Rooms will be displayed as cards for information -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Bookings Tab -->
+            <div id="myBookingsTab" class="tab-content">
+                <div style="margin-bottom: 2rem;">
+                    <h2 style="margin-bottom: 0.5rem;">MY BOOKINGS</h2>
+                    <p style="color: var(--mh-text-secondary);">Manage your existing reservations</p>
+                </div>
+                
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3>Booking History</h3>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--mh-border);">
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Room</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Date</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Time Slot</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Purpose</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Status</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myBookingsTable">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel (Visible only to Admins) -->
+            <div id="adminTab" class="tab-content">
+                <div style="margin-bottom: 2rem;">
+                    <h2><i class="fas fa-shield-alt"></i> ADMINISTRATION PANEL</h2>
+                    <p style="color: var(--mh-text-secondary);">Manage user booking requests and system settings</p>
+                </div>
+
+                <!-- Pending Bookings -->
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-clock"></i> Pending Booking Requests</h3>
+                    </div>
+                    
+                    <div style="padding: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--mh-border);">
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">User</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Room</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Date & Time</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Purpose</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Attendees</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminPendingTable">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- All Bookings -->
+                <div class="admin-panel" style="margin-top: 2rem;">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-list"></i> All Bookings</h3>
+                    </div>
+                    
+                    <div style="padding: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--mh-border);">
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">User</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Room</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Date & Time</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Status</th>
+                                    <th style="padding: 1rem; text-align: left; color: var(--mh-text-secondary);">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAllTable">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Management Panel (Visible only to Admins) -->
+            <div id="usersTab" class="tab-content">
+                <div style="margin-bottom: 2rem;">
+                    <h2><i class="fas fa-users"></i> USER MANAGEMENT</h2>
+                    <p style="color: var(--mh-text-secondary);">Manage all registered user accounts</p>
+                </div>
+
+                <!-- User Management Actions -->
+                <div class="user-management-actions">
+                    <button class="mh-btn mh-btn-success" id="addUserBtn">
+                        <i class="fas fa-user-plus"></i> ADD NEW USER
+                    </button>
+                    <button class="mh-btn mh-btn-secondary" id="refreshUsersBtn">
+                        <i class="fas fa-sync-alt"></i> REFRESH
+                    </button>
+                </div>
+
+                <!-- Users List -->
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-list"></i> Registered Users</h3>
+                        <p style="color: var(--mh-text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+                            Total: <span id="totalUsersCount">0</span> users
+                        </p>
+                    </div>
+                    
+                    <div style="padding: 1.5rem;" id="usersList">
+                        <!-- Users will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Monster Hunter Style Notification System
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                background: ${type === 'success' ? 'var(--mh-success)' : 
+                           type === 'error' ? 'var(--mh-error)' : 
+                           type === 'warning' ? 'var(--mh-warning)' : 'var(--mh-medium)'};
+                color: var(--mh-text);
+                border-radius: 4px;
+                border-left: 4px solid ${type === 'success' ? '#4CAF50' : 
+                                   type === 'error' ? '#f44336' : 
+                                   type === 'warning' ? '#FF9800' : 'var(--mh-accent)'};
+                z-index: 1000;
+                animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                font-family: 'Rajdhani', sans-serif;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            `;
+            
+            const icon = type === 'success' ? 'fa-check-circle' :
+                        type === 'error' ? 'fa-exclamation-circle' :
+                        type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+            
+            notification.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Add animation keyframes
+            const style = document.createElement('style');
+            if (!document.querySelector('#notification-styles')) {
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                    @keyframes fadeOut {
+                        to {
+                            opacity: 0;
+                            transform: translateX(100%);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        // Data Storage
+        let users = JSON.parse(localStorage.getItem('corpsuite_users')) || [
+            {
+                id: 1,
+                username: 'admin',
+                password: 'admin123',
+                name: 'Administrator',
+                email: 'admin@company.com',
+                department: 'executive',
+                role: 'admin',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                lastLogin: null
+            },
+            {
+                id: 2,
+                username: 'user1',
+                password: 'user123',
+                name: 'John Doe',
+                email: 'john@company.com',
+                department: 'it',
+                role: 'user',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                lastLogin: null
+            },
+            {
+                id: 3,
+                username: 'user2',
+                password: 'user123',
+                name: 'Jane Smith',
+                email: 'jane@company.com',
+                department: 'hr',
+                role: 'user',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                lastLogin: null
+            }
+        ];
+
+        // Room Data
+        let rooms = JSON.parse(localStorage.getItem('corpsuite_rooms')) || [
+            {
+                id: 1,
+                name: 'Conference Room A',
+                capacity: 12,
+                floor: '3rd Floor',
+                features: ['Projector', 'Video Conference', 'Whiteboard'],
+                status: 'available'
+            },
+            {
+                id: 2,
+                name: 'Conference Room B',
+                capacity: 8,
+                floor: '3rd Floor',
+                features: ['Projector', 'Whiteboard'],
+                status: 'available'
+            },
+            {
+                id: 3,
+                name: 'Executive Suite',
+                capacity: 6,
+                floor: '5th Floor',
+                features: ['Video Conference', 'Coffee Machine', 'Soundproof'],
+                status: 'available'
+            },
+            {
+                id: 4,
+                name: 'Creative Space',
+                capacity: 15,
+                floor: '2nd Floor',
+                features: ['Whiteboard', 'Brainstorming Tools', 'Comfortable Seating'],
+                status: 'available'
+            },
+            {
+                id: 5,
+                name: 'Focus Room 1',
+                capacity: 4,
+                floor: '4th Floor',
+                features: ['Quiet Space', 'Monitor'],
+                status: 'available'
+            },
+            {
+                id: 6,
+                name: 'Focus Room 2',
+                capacity: 4,
+                floor: '4th Floor',
+                features: ['Quiet Space', 'Monitor'],
+                status: 'available'
+            }
+        ];
+
+        // Bookings Data
+        let bookings = JSON.parse(localStorage.getItem('corpsuite_bookings')) || [
+            {
+                id: 1,
+                roomId: 3,
+                userId: 'user1',
+                userName: 'John Doe',
+                date: new Date().toISOString().split('T')[0], // Today
+                startTime: '14:00',
+                endTime: '15:30',
+                purpose: 'Client Meeting',
+                attendees: 5,
+                status: 'approved'
+            },
+            {
+                id: 2,
+                roomId: 1,
+                userId: 'user1',
+                userName: 'John Doe',
+                date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+                startTime: '10:00',
+                endTime: '11:00',
+                purpose: 'Team Standup',
+                attendees: 8,
+                status: 'approved'
+            },
+            {
+                id: 3,
+                roomId: 2,
+                userId: 'admin',
+                userName: 'Administrator',
+                date: new Date().toISOString().split('T')[0], // Today
+                startTime: '16:00',
+                endTime: '17:00',
+                purpose: 'Management Meeting',
+                attendees: 4,
+                status: 'approved'
+            }
+        ];
+
+        let currentUser = null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        // Utility Functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatDateTime(dateString, timeString) {
+            return `${formatDate(dateString)} at ${timeString}`;
+        }
+
+        function getRoomName(roomId) {
+            const room = rooms.find(r => r.id === roomId);
+            return room ? room.name : 'Unknown Room';
+        }
+
+        function getRoomById(roomId) {
+            return rooms.find(r => r.id === roomId);
+        }
+
+        function getUserById(userId) {
+            return users.find(u => u.id === userId);
+        }
+
+        function getUserByUsername(username) {
+            return users.find(u => u.username === username);
+        }
+
+        // Time Utility Functions
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function minutesToTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        }
+
+        function calculateDuration(startTime, endTime) {
+            const start = timeToMinutes(startTime);
+            const end = timeToMinutes(endTime);
+            const duration = end - start;
+            
+            if (duration <= 0) return 'Invalid';
+            
+            const hours = Math.floor(duration / 60);
+            const minutes = duration % 60;
+            
+            if (hours === 0) return `${minutes} minutes`;
+            if (minutes === 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+            return `${hours}h ${minutes}m`;
+        }
+
+        function updateDurationDisplay() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const duration = calculateDuration(startTime, endTime);
+            document.getElementById('durationDisplay').textContent = duration;
+        }
+
+        // Time Conflict Checking
+        function checkTimeConflict(roomId, date, startTime, endTime, excludeBookingId = null) {
+            const startMinutes = timeToMinutes(startTime);
+            const endMinutes = timeToMinutes(endTime);
+            
+            // Validate time range
+            if (endMinutes <= startMinutes) {
+                return { conflict: true, message: 'End time must be after start time' };
+            }
+            
+            if (endMinutes - startMinutes < 30) {
+                return { conflict: true, message: 'Minimum booking duration is 30 minutes' };
+            }
+            
+            // Check for conflicts with existing bookings
+            const conflictingBookings = bookings.filter(booking => {
+                if (booking.roomId !== roomId || booking.date !== date) return false;
+                if (excludeBookingId && booking.id === excludeBookingId) return false;
+                if (booking.status !== 'approved' && booking.status !== 'pending') return false;
+                
+                const bookingStart = timeToMinutes(booking.startTime);
+                const bookingEnd = timeToMinutes(booking.endTime);
+                
+                // Check for overlap
+                return !(endMinutes <= bookingStart || startMinutes >= bookingEnd);
+            });
+            
+            if (conflictingBookings.length > 0) {
+                const conflict = conflictingBookings[0];
+                return { 
+                    conflict: true, 
+                    message: `Conflicts with ${conflict.userName}'s booking (${conflict.startTime} - ${conflict.endTime})` 
+                };
+            }
+            
+            return { conflict: false, message: '' };
+        }
+
+        // Find Available Time Slots
+        function findAvailableSlots(roomId, date, minDuration = 30) {
+            const slots = [];
+            const workStart = 8 * 60; // 8:00 AM
+            const workEnd = 18 * 60;  // 6:00 PM
+            
+            // Get all bookings for this room/date
+            const dayBookings = bookings
+                .filter(b => b.roomId === roomId && b.date === date && (b.status === 'approved' || b.status === 'pending'))
+                .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+            
+            let currentTime = workStart;
+            
+            // If no bookings, entire day is available
+            if (dayBookings.length === 0) {
+                slots.push({
+                    start: minutesToTime(workStart),
+                    end: minutesToTime(workEnd),
+                    duration: workEnd - workStart
+                });
+                return slots;
+            }
+            
+            // Check before first booking
+            const firstBookingStart = timeToMinutes(dayBookings[0].startTime);
+            if (firstBookingStart - currentTime >= minDuration) {
+                slots.push({
+                    start: minutesToTime(currentTime),
+                    end: minutesToTime(firstBookingStart),
+                    duration: firstBookingStart - currentTime
+                });
+            }
+            
+            // Check between bookings
+            for (let i = 0; i < dayBookings.length - 1; i++) {
+                const currentBookingEnd = timeToMinutes(dayBookings[i].endTime);
+                const nextBookingStart = timeToMinutes(dayBookings[i + 1].startTime);
+                
+                if (nextBookingStart - currentBookingEnd >= minDuration) {
+                    slots.push({
+                        start: minutesToTime(currentBookingEnd),
+                        end: minutesToTime(nextBookingStart),
+                        duration: nextBookingStart - currentBookingEnd
+                    });
+                }
+            }
+            
+            // Check after last booking
+            const lastBookingEnd = timeToMinutes(dayBookings[dayBookings.length - 1].endTime);
+            if (workEnd - lastBookingEnd >= minDuration) {
+                slots.push({
+                    start: minutesToTime(lastBookingEnd),
+                    end: minutesToTime(workEnd),
+                    duration: workEnd - lastBookingEnd
+                });
+            }
+            
+            return slots;
+        }
+
+        // Calendar Functions
+        function generateCalendar(month, year) {
+            const calendar = document.getElementById('calendar');
+            const currentMonthElement = document.getElementById('currentMonth');
+            
+            // Clear existing calendar
+            calendar.innerHTML = '';
+            
+            // Set month title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            currentMonthElement.textContent = `${monthNames[month]} ${year}`;
+            
+            // Create day headers
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayNames.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                calendar.appendChild(dayHeader);
+            });
+            
+            // Get first day of month
+            const firstDay = new Date(year, month, 1);
+            const startingDay = firstDay.getDay();
+            
+            // Get last day of month
+            const lastDay = new Date(year, month + 1, 0);
+            const totalDays = lastDay.getDate();
+            
+            // Get last day of previous month
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            
+            // Add previous month days
+            for (let i = startingDay - 1; i >= 0; i--) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day other-month';
+                day.innerHTML = `
+                    <div class="day-number">${prevMonthLastDay - i}</div>
+                `;
+                calendar.appendChild(day);
+            }
+            
+            // Add current month days
+            const today = new Date();
+            const isToday = (day) => {
+                return day === today.getDate() && 
+                       month === today.getMonth() && 
+                       year === today.getFullYear();
+            };
+            
+            for (let day = 1; day <= totalDays; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                dayElement.dataset.date = dateStr;
+                
+                if (isToday(day)) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Get bookings for this day - ADMIN SEES ALL, USER SEES THEIR OWN
+                let dayBookings = [];
+                if (currentUser?.role === 'admin') {
+                    // Admin sees all approved bookings for all rooms
+                    dayBookings = bookings.filter(b => b.date === dateStr && b.status === 'approved');
+                } else {
+                    // Regular users see only their approved bookings
+                    dayBookings = bookings.filter(b => b.date === dateStr && b.userId === currentUser?.username && b.status === 'approved');
+                }
+                
+                // Create booking display
+                let bookingHtml = '';
+                if (dayBookings.length > 0) {
+                    // Group by room for admin view
+                    if (currentUser?.role === 'admin') {
+                        const bookingsByRoom = {};
+                        dayBookings.forEach(booking => {
+                            const roomName = getRoomName(booking.roomId);
+                            if (!bookingsByRoom[roomName]) {
+                                bookingsByRoom[roomName] = [];
+                            }
+                            bookingsByRoom[roomName].push(booking);
+                        });
+                        
+                        bookingHtml = Object.entries(bookingsByRoom).map(([roomName, roomBookings]) => {
+                            const firstBooking = roomBookings[0];
+                            return `
+                                <div class="event" title="${roomName}: ${roomBookings.length} booking${roomBookings.length > 1 ? 's' : ''}">
+                                    ${firstBooking.startTime} ${roomName.split(' ')[0]}
+                                    ${roomBookings.length > 1 ? ` (+${roomBookings.length - 1})` : ''}
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        // User view - show their bookings
+                        bookingHtml = dayBookings.map(booking => `
+                            <div class="event" title="${getRoomName(booking.roomId)}: ${booking.purpose}">
+                                ${booking.startTime} ${getRoomName(booking.roomId).split(' ')[0]}
+                            </div>
+                        `).join('');
+                    }
+                }
+                
+                dayElement.innerHTML = `
+                    <div class="day-number">${day}</div>
+                    <div class="day-events">
+                        ${bookingHtml}
+                    </div>
+                `;
+                
+                calendar.appendChild(dayElement);
+            }
+            
+            // Add next month days to complete grid
+            const totalCells = 42; // 6 rows * 7 days
+            const cellsUsed = startingDay + totalDays;
+            const nextMonthDays = totalCells - cellsUsed;
+            
+            for (let day = 1; day <= nextMonthDays; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day other-month';
+                dayElement.innerHTML = `
+                    <div class="day-number">${day}</div>
+                `;
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        // Room Functions
+        function renderRooms() {
+            const roomSelect = document.getElementById('roomSelect');
+            const roomsList = document.getElementById('roomsList');
+            
+            // Update room select dropdown
+            roomSelect.innerHTML = '<option value="">Select a room...</option>';
+            
+            // Add all rooms to dropdown
+            rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.id;
+                option.textContent = `${room.name} (Capacity: ${room.capacity}, Floor: ${room.floor})`;
+                roomSelect.appendChild(option);
+            });
+            
+            // Update room info cards
+            roomsList.innerHTML = '';
+            rooms.forEach(room => {
+                const roomCard = document.createElement('div');
+                roomCard.className = `room-card ${room.status}`;
+                
+                // Check room availability for today
+                const today = new Date().toISOString().split('T')[0];
+                const todayBookings = bookings.filter(b => 
+                    b.roomId === room.id && 
+                    b.date === today && 
+                    (b.status === 'approved' || b.status === 'pending')
+                );
+                
+                const isAvailableToday = todayBookings.length === 0;
+                
+                roomCard.innerHTML = `
+                    <h3><i class="fas fa-door-closed" style="color: var(--mh-accent); margin-right: 0.5rem;"></i> ${room.name}</h3>
+                    <p style="margin: 0.5rem 0; color: var(--mh-text-secondary);">
+                        <i class="fas fa-layer-group"></i> ${room.floor} | 
+                        <i class="fas fa-users"></i> ${room.capacity} people
+                    </p>
+                    <div style="margin: 1rem 0;">
+                        ${room.features.map(feature => `
+                            <span style="display: inline-block; background: rgba(74, 111, 165, 0.2); 
+                                   color: var(--mh-text-secondary); padding: 0.25rem 0.5rem; 
+                                   margin-right: 0.5rem; margin-bottom: 0.5rem; border-radius: 3px; 
+                                   font-size: 0.8rem;">
+                                ${feature}
+                            </span>
+                        `).join('')}
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <p style="color: ${isAvailableToday ? 'var(--mh-success)' : 'var(--mh-warning)'}; 
+                           font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">
+                            <i class="fas fa-calendar-day" style="font-size: 0.7rem; margin-right: 0.5rem;"></i>
+                            ${isAvailableToday ? 'AVAILABLE TODAY' : 'BOOKED TODAY'}
+                        </p>
+                        <p style="color: var(--mh-text-secondary); font-size: 0.9rem;">
+                            ${todayBookings.length} booking${todayBookings.length !== 1 ? 's' : ''} today
+                        </p>
+                    </div>
+                `;
+                roomsList.appendChild(roomCard);
+            });
+            
+            // Update stats
+            updateStats();
+        }
+
+        // User Management Functions
+        function renderUsers() {
+            if (currentUser?.role !== 'admin') return;
+            
+            const usersList = document.getElementById('usersList');
+            const totalUsersCount = document.getElementById('totalUsersCount');
+            
+            // Clear existing users list
+            usersList.innerHTML = '';
+            
+            // Count users
+            const activeUsers = users.filter(u => u.status === 'active').length;
+            const suspendedUsers = users.filter(u => u.status === 'suspended').length;
+            totalUsersCount.textContent = users.length;
+            
+            // Create user cards
+            users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                userCard.dataset.userId = user.id;
+                
+                // Format created date
+                const createdDate = new Date(user.createdAt);
+                const formattedDate = createdDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                // Format last login
+                let lastLoginText = 'Never logged in';
+                if (user.lastLogin) {
+                    const lastLoginDate = new Date(user.lastLogin);
+                    lastLoginText = lastLoginDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+                
+                userCard.innerHTML = `
+                    <div class="user-info">
+                        <h4>${user.name} <span class="status-badge status-${user.status}">${user.status.toUpperCase()}</span></h4>
+                        <div class="user-meta">
+                            <span><i class="fas fa-user"></i> @${user.username}</span>
+                            <span><i class="fas fa-envelope"></i> ${user.email}</span>
+                            <span><i class="fas fa-building"></i> ${user.department}</span>
+                            <span><i class="fas fa-shield-alt"></i> ${user.role}</span>
+                        </div>
+                        <div class="user-meta" style="margin-top: 0.5rem;">
+                            <span><i class="fas fa-calendar-plus"></i> Created: ${formattedDate}</span>
+                            <span><i class="fas fa-sign-in-alt"></i> Last login: ${lastLoginText}</span>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="action-btn edit-btn" onclick="editUser(${user.id})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="action-btn suspend-btn" onclick="toggleUserStatus(${user.id})">
+                            <i class="fas ${user.status === 'active' ? 'fa-user-slash' : 'fa-user-check'}"></i> 
+                            ${user.status === 'active' ? 'Suspend' : 'Activate'}
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteUser(${user.id})" ${user.id === currentUser.id ? 'disabled style="opacity:0.5;"' : ''}>
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+                
+                usersList.appendChild(userCard);
+            });
+            
+            // Add user count info
+            const countInfo = document.createElement('div');
+            countInfo.style.cssText = `
+                color: var(--mh-text-secondary);
+                font-size: 0.9rem;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--mh-border);
+            `;
+            countInfo.innerHTML = `
+                <div style="display: flex; gap: 2rem;">
+                    <span><i class="fas fa-user-check" style="color: var(--mh-success);"></i> Active: ${activeUsers}</span>
+                    <span><i class="fas fa-user-slash" style="color: var(--mh-error);"></i> Suspended: ${suspendedUsers}</span>
+                    <span><i class="fas fa-shield-alt" style="color: var(--mh-accent);"></i> Admins: ${users.filter(u => u.role === 'admin').length}</span>
+                </div>
+            `;
+            usersList.appendChild(countInfo);
+        }
+
+        function toggleUserStatus(userId) {
+            const user = getUserById(userId);
+            if (!user) return;
+            
+            // Prevent self-suspension
+            if (user.id === currentUser.id) {
+                showNotification('You cannot change your own status', 'warning');
+                return;
+            }
+            
+            const newStatus = user.status === 'active' ? 'suspended' : 'active';
+            const action = user.status === 'active' ? 'suspend' : 'activate';
+            
+            if (confirm(`Are you sure you want to ${action} ${user.name}?`)) {
+                user.status = newStatus;
+                localStorage.setItem('corpsuite_users', JSON.stringify(users));
+                
+                renderUsers();
+                showNotification(`User ${user.name} ${action}ed successfully`, 'success');
+            }
+        }
+
+        function editUser(userId) {
+            const user = getUserById(userId);
+            if (!user) return;
+            
+            // Prevent editing self (for demo purposes)
+            if (user.id === currentUser.id) {
+                showNotification('You cannot edit your own account from here', 'warning');
+                return;
+            }
+            
+            // In a real app, you would open an edit modal
+            showNotification(`Edit user ${user.name} - This feature would open an edit form`, 'info');
+        }
+
+        function deleteUser(userId) {
+            const user = getUserById(userId);
+            if (!user) return;
+            
+            // Prevent self-deletion
+            if (user.id === currentUser.id) {
+                showNotification('You cannot delete your own account', 'error');
+                return;
+            }
+            
+            // Check if user has active bookings
+            const userBookings = bookings.filter(b => b.userId === user.username && (b.status === 'approved' || b.status === 'pending'));
+            
+            if (userBookings.length > 0) {
+                showNotification(`Cannot delete user with ${userBookings.length} active bookings`, 'error');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete ${user.name}? This action cannot be undone.`)) {
+                // Remove user from array
+                users = users.filter(u => u.id !== userId);
+                localStorage.setItem('corpsuite_users', JSON.stringify(users));
+                
+                renderUsers();
+                showNotification(`User ${user.name} deleted successfully`, 'success');
+            }
+        }
+
+        function addNewUser() {
+            // In a real app, you would open a modal to add a new user
+            // For now, we'll create a demo user
+            const newUserId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 1;
+            const newUser = {
+                id: newUserId,
+                username: `user${newUserId}`,
+                password: 'password123',
+                name: `New User ${newUserId}`,
+                email: `user${newUserId}@company.com`,
+                department: 'it',
+                role: 'user',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                lastLogin: null
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('corpsuite_users', JSON.stringify(users));
+            
+            renderUsers();
+            showNotification(`New user ${newUser.name} created`, 'success');
+        }
+
+        // Booking Functions
+        function renderMyBookings() {
+            const table = document.getElementById('myBookingsTable');
+            const upcomingTable = document.getElementById('upcomingBookings');
+            
+            if (!currentUser) return;
+            
+            const userBookings = bookings.filter(b => b.userId === currentUser.username && b.status !== 'cancelled');
+            
+            // Sort by date and time
+            userBookings.sort((a, b) => new Date(a.date + ' ' + a.startTime) - new Date(b.date + ' ' + b.startTime));
+            
+            // Upcoming bookings (next 7 days)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const nextWeek = new Date();
+            nextWeek.setDate(today.getDate() + 7);
+            
+            const upcomingBookings = userBookings.filter(b => {
+                const bookingDate = new Date(b.date);
+                return bookingDate >= today && bookingDate <= nextWeek && b.status === 'approved';
+            });
+            
+            // Render upcoming bookings
+            upcomingTable.innerHTML = upcomingBookings.map(booking => `
+                <tr style="border-bottom: 1px solid var(--mh-border);">
+                    <td style="padding: 1rem;">${getRoomName(booking.roomId)}</td>
+                    <td style="padding: 1rem;">${formatDate(booking.date)}</td>
+                    <td style="padding: 1rem;">${booking.startTime} - ${booking.endTime}</td>
+                    <td style="padding: 1rem;">${booking.purpose}</td>
+                    <td style="padding: 1rem;">
+                        <span class="status-badge status-${booking.status}">
+                            ${booking.status.toUpperCase()}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+            
+            if (upcomingBookings.length === 0) {
+                upcomingTable.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--mh-text-secondary);">
+                            No upcoming bookings
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            // Render all bookings
+            table.innerHTML = userBookings.map(booking => `
+                <tr style="border-bottom: 1px solid var(--mh-border);">
+                    <td style="padding: 1rem;">${getRoomName(booking.roomId)}</td>
+                    <td style="padding: 1rem;">${formatDate(booking.date)}</td>
+                    <td style="padding: 1rem;">${booking.startTime} - ${booking.endTime}</td>
+                    <td style="padding: 1rem;">${booking.purpose}</td>
+                    <td style="padding: 1rem;">
+                        <span class="status-badge status-${booking.status}">
+                            ${booking.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <button class="mh-btn mh-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" 
+                                onclick="cancelBooking(${booking.id})" 
+                                ${(booking.status !== 'pending' && booking.status !== 'approved') || new Date(booking.date) < new Date() ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            Cancel
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            if (userBookings.length === 0) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--mh-text-secondary);">
+                            You haven't made any bookings yet
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            updateStats();
+        }
+
+        function cancelBooking(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+            
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                booking.status = 'cancelled';
+                localStorage.setItem('corpsuite_bookings', JSON.stringify(bookings));
+                
+                renderMyBookings();
+                renderRooms();
+                if (currentUser.role === 'admin') {
+                    renderAdminTables();
+                    generateCalendar(currentMonth, currentYear);
+                }
+                showNotification('Booking cancelled successfully', 'success');
+            }
+        }
+
+        // Admin Functions
+        function renderAdminTables() {
+            if (currentUser?.role !== 'admin') return;
+            
+            // Pending bookings table
+            const pendingTable = document.getElementById('adminPendingTable');
+            const pendingBookings = bookings.filter(b => b.status === 'pending');
+            
+            pendingTable.innerHTML = pendingBookings.map(booking => `
+                <tr style="border-bottom: 1px solid var(--mh-border);">
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 600;">${booking.userName}</div>
+                        <div style="font-size: 0.9rem; color: var(--mh-text-secondary);">@${booking.userId}</div>
+                    </td>
+                    <td style="padding: 1rem;">${getRoomName(booking.roomId)}</td>
+                    <td style="padding: 1rem;">
+                        <div>${formatDate(booking.date)}</div>
+                        <div style="font-size: 0.9rem; color: var(--mh-text-secondary);">${booking.startTime} - ${booking.endTime}</div>
+                    </td>
+                    <td style="padding: 1rem;">${booking.purpose}</td>
+                    <td style="padding: 1rem;">${booking.attendees}</td>
+                    <td style="padding: 1rem;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="mh-btn mh-btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" 
+                                    onclick="approveBooking(${booking.id})">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="mh-btn mh-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" 
+                                    onclick="rejectBooking(${booking.id})">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            if (pendingBookings.length === 0) {
+                pendingTable.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--mh-text-secondary);">
+                            No pending booking requests
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            // All bookings table
+            const allTable = document.getElementById('adminAllTable');
+            const allBookings = [...bookings].sort((a, b) => new Date(b.date + ' ' + b.startTime) - new Date(a.date + ' ' + a.startTime));
+            
+            allTable.innerHTML = allBookings.map(booking => `
+                <tr style="border-bottom: 1px solid var(--mh-border);">
+                    <td style="padding: 1rem;">${booking.userName}</td>
+                    <td style="padding: 1rem;">${getRoomName(booking.roomId)}</td>
+                    <td style="padding: 1rem;">
+                        <div>${formatDate(booking.date)}</div>
+                        <div style="font-size: 0.9rem; color: var(--mh-text-secondary);">${booking.startTime} - ${booking.endTime}</div>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <span class="status-badge status-${booking.status}">
+                            ${booking.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="mh-btn mh-btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" 
+                                    onclick="adminCancelBooking(${booking.id})" 
+                                    ${booking.status === 'cancelled' || booking.status === 'rejected' ? 'disabled style="opacity: 0.5;"' : ''}>
+                                <i class="fas fa-ban"></i> Cancel
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function approveBooking(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+            
+            booking.status = 'approved';
+            localStorage.setItem('corpsuite_bookings', JSON.stringify(bookings));
+            
+            showNotification(`Booking approved for ${booking.userName}`, 'success');
+            renderAdminTables();
+            renderRooms();
+            generateCalendar(currentMonth, currentYear);
+            
+            // Refresh user's bookings if they're viewing
+            if (currentUser.username === booking.userId) {
+                renderMyBookings();
+            }
+        }
+
+        function rejectBooking(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+            
+            booking.status = 'rejected';
+            localStorage.setItem('corpsuite_bookings', JSON.stringify(bookings));
+            
+            showNotification(`Booking rejected for ${booking.userName}`, 'warning');
+            renderAdminTables();
+            renderRooms();
+            generateCalendar(currentMonth, currentYear);
+            
+            // Refresh user's bookings if they're viewing
+            if (currentUser.username === booking.userId) {
+                renderMyBookings();
+            }
+        }
+
+        function adminCancelBooking(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+            
+            if (confirm(`Are you sure you want to cancel ${booking.userName}'s booking?`)) {
+                booking.status = 'cancelled';
+                localStorage.setItem('corpsuite_bookings', JSON.stringify(bookings));
+                
+                showNotification(`Booking cancelled for ${booking.userName}`, 'success');
+                renderAdminTables();
+                renderRooms();
+                generateCalendar(currentMonth, currentYear);
+                
+                // Refresh user's bookings if they're viewing
+                if (currentUser.username === booking.userId) {
+                    renderMyBookings();
+                }
+            }
+        }
+
+        // Stats Function
+        function updateStats() {
+            if (!currentUser) return;
+            
+            // My bookings count
+            const myBookingsCount = bookings.filter(b => b.userId === currentUser.username && b.status !== 'cancelled' && b.status !== 'rejected').length;
+            document.getElementById('myBookingsCount').textContent = myBookingsCount;
+            
+            // Available rooms count (rooms with no bookings today)
+            const today = new Date().toISOString().split('T')[0];
+            const availableRoomsCount = rooms.filter(room => {
+                const hasBookingsToday = bookings.some(b => 
+                    b.roomId === room.id && 
+                    b.date === today && 
+                    (b.status === 'approved' || b.status === 'pending')
+                );
+                return !hasBookingsToday;
+            }).length;
+            document.getElementById('availableRoomsCount').textContent = availableRoomsCount;
+            
+            // Upcoming today count
+            const upcomingCount = bookings.filter(b => 
+                b.userId === currentUser.username && 
+                b.date === today && 
+                b.status === 'approved'
+            ).length;
+            document.getElementById('upcomingCount').textContent = upcomingCount;
+        }
+
+        // Tab Management
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                if (content.id === tabName + 'Tab') {
+                    content.classList.add('active');
+                }
+            });
+            
+            // Tab-specific initialization
+            switch(tabName) {
+                case 'calendar':
+                    generateCalendar(currentMonth, currentYear);
+                    break;
+                case 'rooms':
+                    renderRooms();
+                    // Set default date to today
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('quickBookingDate').value = today;
+                    document.getElementById('quickBookingDate').min = today;
+                    updateDurationDisplay();
+                    
+                    // FIX: Reset form state
+                    document.getElementById('conflictWarning').classList.remove('show');
+                    document.getElementById('suggestedSlots').classList.remove('show');
+                    document.getElementById('submitBookingBtn').disabled = false;
+                    break;
+                case 'my-bookings':
+                    renderMyBookings();
+                    break;
+                case 'admin':
+                    renderAdminTables();
+                    break;
+                case 'users':
+                    renderUsers();
+                    break;
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize localStorage if needed
+            if (!localStorage.getItem('corpsuite_rooms')) {
+                localStorage.setItem('corpsuite_rooms', JSON.stringify(rooms));
+            }
+            if (!localStorage.getItem('corpsuite_bookings')) {
+                localStorage.setItem('corpsuite_bookings', JSON.stringify(bookings));
+            }
+            if (!localStorage.getItem('corpsuite_users')) {
+                localStorage.setItem('corpsuite_users', JSON.stringify(users));
+            }
+            
+            // Check for existing session
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('frontPage').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                document.getElementById('userWelcome').textContent = `Welcome, ${currentUser.name}`;
+                
+                // Show admin tabs if user is admin
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminTabBtn').style.display = 'block';
+                    document.getElementById('usersTabBtn').style.display = 'block';
+                }
+                
+                // Initialize dashboard
+                switchTab('overview');
+            }
+            
+            // Set minimum date for booking forms
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('quickBookingDate').min = today;
+            document.getElementById('quickBookingDate').value = today;
+            
+            // Modal controls
+            const registerModal = document.getElementById('registerModal');
+            document.getElementById('showRegisterBtn').addEventListener('click', () => registerModal.classList.add('active'));
+            document.getElementById('showRegister').addEventListener('click', () => registerModal.classList.add('active'));
+            document.getElementById('closeModal').addEventListener('click', () => registerModal.classList.remove('active'));
+            document.getElementById('cancelRegister').addEventListener('click', () => registerModal.classList.remove('active'));
+            
+            // Calendar navigation
+            document.getElementById('prevMonth').addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            document.getElementById('nextMonth').addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            document.getElementById('goToday').addEventListener('click', () => {
+                const today = new Date();
+                currentMonth = today.getMonth();
+                currentYear = today.getFullYear();
+                generateCalendar(currentMonth, currentYear);
+            });
+            
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+            
+            // Time input changes
+            document.getElementById('startTime').addEventListener('change', function() {
+                updateDurationDisplay();
+                // Reset conflict warning
+                document.getElementById('conflictWarning').classList.remove('show');
+                document.getElementById('suggestedSlots').classList.remove('show');
+                
+                // Auto-adjust end time if needed
+                const startMinutes = timeToMinutes(this.value);
+                const endTimeInput = document.getElementById('endTime');
+                const endMinutes = timeToMinutes(endTimeInput.value);
+                
+                if (endMinutes <= startMinutes) {
+                    endTimeInput.value = minutesToTime(startMinutes + 60);
+                    updateDurationDisplay();
+                }
+            });
+            
+            document.getElementById('endTime').addEventListener('change', updateDurationDisplay);
+            
+            // Check availability button
+            document.getElementById('checkAvailabilityBtn').addEventListener('click', function() {
+                const roomId = parseInt(document.getElementById('roomSelect').value);
+                const date = document.getElementById('quickBookingDate').value;
+                const startTime = document.getElementById('startTime').value;
+                const endTime = document.getElementById('endTime').value;
+                
+                if (!roomId || !date) {
+                    showNotification('Please select a room and date first', 'warning');
+                    return;
+                }
+                
+                // Check for time conflict
+                const conflict = checkTimeConflict(roomId, date, startTime, endTime);
+                const conflictWarning = document.getElementById('conflictWarning');
+                const conflictDetails = document.getElementById('conflictDetails');
+                const submitBtn = document.getElementById('submitBookingBtn');
+                const suggestedSlots = document.getElementById('suggestedSlots');
+                const suggestedSlotsGrid = document.getElementById('suggestedSlotsGrid');
+                
+                if (conflict.conflict) {
+                    // Show conflict warning
+                    conflictWarning.classList.add('show');
+                    conflictDetails.textContent = conflict.message;
+                    
+                    // Find and show available slots
+                    const availableSlots = findAvailableSlots(roomId, date, 30);
+                    if (availableSlots.length > 0) {
+                        suggestedSlots.classList.add('show');
+                        suggestedSlotsGrid.innerHTML = '';
+                        
+                        availableSlots.forEach(slot => {
+                            const slotElement = document.createElement('div');
+                            slotElement.className = 'time-slot available';
+                            const durationText = slot.duration >= 60 ? 
+                                `${Math.floor(slot.duration / 60)}h ${slot.duration % 60}m` : 
+                                `${slot.duration}m`;
+                            slotElement.innerHTML = `
+                                ${slot.start}-${slot.end}<br>
+                                <small>${durationText}</small>
+                            `;
+                            slotElement.addEventListener('click', function() {
+                                document.getElementById('startTime').value = slot.start;
+                                document.getElementById('endTime').value = slot.end;
+                                updateDurationDisplay();
+                                conflictWarning.classList.remove('show');
+                                suggestedSlots.classList.remove('show');
+                                showNotification('Time slot selected! You can now submit your booking.', 'success');
+                            });
+                            suggestedSlotsGrid.appendChild(slotElement);
+                        });
+                    } else {
+                        suggestedSlots.classList.remove('show');
+                        showNotification('No available slots found for this room on the selected date', 'warning');
+                    }
+                } else {
+                    // No conflict
+                    conflictWarning.classList.remove('show');
+                    suggestedSlots.classList.remove('show');
+                    showNotification('Time slot is available! You can submit your booking.', 'success');
+                }
+            });
+            
+            // Quick booking form submission - FIXED SUBMIT ISSUE
+            document.getElementById('quickBookingForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const roomId = parseInt(document.getElementById('roomSelect').value);
+                const date = document.getElementById('quickBookingDate').value;
+                const startTime = document.getElementById('startTime').value;
+                const endTime = document.getElementById('endTime').value;
+                const purpose = document.getElementById('quickPurpose').value.trim();
+                const attendees = parseInt(document.getElementById('quickAttendees').value);
+                
+                // Validation
+                if (!roomId) {
+                    showNotification('Please select a room', 'warning');
+                    return;
+                }
+                
+                if (!purpose) {
+                    showNotification('Please enter meeting purpose', 'warning');
+                    return;
+                }
+                
+                if (!attendees || attendees < 1 || attendees > 50) {
+                    showNotification('Please enter valid number of attendees (1-50)', 'warning');
+                    return;
+                }
+                
+                // Final conflict check before submitting
+                const conflict = checkTimeConflict(roomId, date, startTime, endTime);
+                if (conflict.conflict) {
+                    showNotification(conflict.message, 'error');
+                    return;
+                }
+                
+                // Create new booking
+                const newBooking = {
+                    id: bookings.length ? Math.max(...bookings.map(b => b.id)) + 1 : 1,
+                    roomId,
+                    userId: currentUser.username,
+                    userName: currentUser.name,
+                    date,
+                    startTime,
+                    endTime,
+                    purpose,
+                    attendees,
+                    status: currentUser.role === 'admin' ? 'approved' : 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                
+                bookings.push(newBooking);
+                localStorage.setItem('corpsuite_bookings', JSON.stringify(bookings));
+                
+                // Show success message
+                const statusMsg = currentUser.role === 'admin' ? 'approved' : 'pending approval';
+                showNotification(`Booking ${statusMsg} successfully!`, 'success');
+                
+                // Clear form
+                document.getElementById('quickPurpose').value = '';
+                document.getElementById('quickAttendees').value = '';
+                document.getElementById('conflictWarning').classList.remove('show');
+                document.getElementById('suggestedSlots').classList.remove('show');
+                
+                // Update UI
+                if (currentUser.role === 'admin') {
+                    renderAdminTables();
+                    generateCalendar(currentMonth, currentYear);
+                }
+                renderRooms();
+                renderMyBookings();
+                updateStats();
+                
+                // Reset time to defaults
+                document.getElementById('startTime').value = '09:00';
+                document.getElementById('endTime').value = '10:00';
+                updateDurationDisplay();
+            });
+            
+            // User management buttons
+            document.getElementById('addUserBtn')?.addEventListener('click', addNewUser);
+            document.getElementById('refreshUsersBtn')?.addEventListener('click', renderUsers);
+            
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (!username || !password) {
+                    showNotification('Please enter username and password', 'warning');
+                    return;
+                }
+                
+                const user = users.find(u => u.username === username && u.password === password);
+                
+                if (!user) {
+                    showNotification('Invalid credentials', 'error');
+                    return;
+                }
+                
+                // Check if user is suspended
+                if (user.status === 'suspended') {
+                    showNotification('Your account has been suspended. Please contact administrator.', 'error');
+                    return;
+                }
+                
+                // Update last login
+                user.lastLogin = new Date().toISOString();
+                localStorage.setItem('corpsuite_users', JSON.stringify(users));
+                
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                // Update UI
+                document.getElementById('frontPage').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                document.getElementById('userWelcome').textContent = `Welcome, ${user.name}`;
+                
+                // Show admin tabs if user is admin
+                if (user.role === 'admin') {
+                    document.getElementById('adminTabBtn').style.display = 'block';
+                    document.getElementById('usersTabBtn').style.display = 'block';
+                }
+                
+                // Initialize dashboard
+                switchTab('overview');
+                
+                showNotification(`Welcome back, ${user.name}`, 'success');
+                
+                // Clear form
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            });
+            
+            // Registration form
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('regName').value.trim();
+                const email = document.getElementById('regEmail').value.trim();
+                const username = document.getElementById('regUsername').value.trim();
+                const password = document.getElementById('regPassword').value;
+                const confirmPassword = document.getElementById('regConfirmPassword').value;
+                const department = document.getElementById('regDepartment').value;
+                
+                // Validation
+                if (!name || !email || !username || !password || !confirmPassword || !department) {
+                    showNotification('Please fill in all fields', 'warning');
+                    return;
+                }
+                
+                if (password.length < 8) {
+                    showNotification('Password must be at least 8 characters', 'warning');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    showNotification('Passwords do not match', 'error');
+                    return;
+                }
+                
+                if (users.some(u => u.username === username)) {
+                    showNotification('Username already exists', 'error');
+                    return;
+                }
+                
+                if (users.some(u => u.email === email)) {
+                    showNotification('Email already registered', 'error');
+                    return;
+                }
+                
+                // Create new user
+                const newUser = {
+                    id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
+                    username,
+                    password,
+                    name,
+                    email,
+                    department,
+                    role: 'user',
+                    status: 'active',
+                    createdAt: new Date().toISOString(),
+                    lastLogin: null
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('corpsuite_users', JSON.stringify(users));
+                
+                // Close modal and show success
+                document.getElementById('registerModal').classList.remove('active');
+                showNotification('Registration successful! You can now sign in.', 'success');
+                
+                // Clear form
+                document.getElementById('registerForm').reset();
+            });
+            
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                
+                document.getElementById('dashboard').classList.remove('active');
+                document.getElementById('frontPage').style.display = 'block';
+                document.getElementById('adminTabBtn').style.display = 'none';
+                document.getElementById('usersTabBtn').style.display = 'none';
+                
+                showNotification('Successfully logged out', 'info');
+            });
+        });
+    </script>
+</body>
+</html>
