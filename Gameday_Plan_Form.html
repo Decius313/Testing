@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Game Day Plan</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #e9e9e9;
+    margin: 0;
+    padding: 40px 20px;
+  }
+  .card {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .header {
+    background: #7ec8e3;
+    padding: 22px 20px;
+    text-align: center;
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: #111;
+    font-weight: 600;
+  }
+  .body {
+    padding: 40px 60px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .field {
+    display: flex;
+    align-items: center;
+    width: 48%;
+    min-width: 260px;
+    margin-bottom: 12px;
+  }
+  .field label {
+    width: 130px;
+    font-size: 15px;
+    color: #222;
+    flex-shrink: 0;
+  }
+  .field input, .field select {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #333;
+    border-radius: 2px;
+    font-size: 14px;
+    background: #fff;
+  }
+  .submit-wrap {
+    text-align: center;
+    margin-top: 20px;
+  }
+  button.submit {
+    background: #1b6f8c;
+    color: #fff;
+    border: none;
+    padding: 13px 60px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button.submit:hover { background: #155a70; }
+  button.submit:disabled { background: #9db8c2; cursor: not-allowed; }
+  .status-bar {
+    background: #f4f4f4;
+    border-top: 1px solid #ddd;
+    padding: 14px 20px;
+    font-size: 13px;
+    color: #444;
+  }
+  .status-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #c0392b;
+    flex-shrink: 0;
+  }
+  .status-bar.connected .dot { background: #27ae60; }
+  .token-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .token-row input[type="password"], .token-row input[type="text"] {
+    flex: 1;
+    min-width: 220px;
+    padding: 7px 10px;
+    border: 1px solid #999;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  .status-bar button {
+    background: #fff;
+    border: 1px solid #999;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .status-bar button:hover { background: #eee; }
+  .note {
+    font-size: 12px;
+    color: #777;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  .note a { color: #1b6f8c; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header"><h1>GAME DAY PLAN</h1></div>
+
+  <div class="body">
+    <form id="gameForm">
+      <div class="row">
+        <div class="field">
+          <label for="gameType">Game Types</label>
+          <select id="gameType" required>
+            <option value="" disabled selected>Select...</option>
+            <option value="Cards">Cards</option>
+            <option value="Boardgames">Boardgames</option>
+            <option value="Digital Games">Digital Games</option>
+            <option value="Quiz">Quiz</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="numPlayers">No. of Players</label>
+          <input type="text" id="numPlayers" required>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="gameName">Game Name</label>
+          <input type="text" id="gameName" required>
+        </div>
+        <div class="field">
+          <label for="first">1st Place</label>
+          <input type="text" id="first">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="winCondition">Win Condition</label>
+          <input type="text" id="winCondition" required>
+        </div>
+        <div class="field">
+          <label for="second">2nd Place</label>
+          <input type="text" id="second">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field" style="visibility:hidden;"></div>
+        <div class="field">
+          <label for="third">3rd Place</label>
+          <input type="text" id="third">
+        </div>
+      </div>
+
+      <div class="submit-wrap">
+        <button type="submit" class="submit" id="submitBtn">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <div class="status-line">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Not connected to GitHub</span>
+    </div>
+    <div class="token-row">
+      <input type="password" id="tokenInput" placeholder="Paste GitHub Personal Access Token">
+      <button type="button" id="saveTokenBtn">Save Token</button>
+      <button type="button" id="clearTokenBtn">Clear Token</button>
+    </div>
+    <div class="note">
+      Repo: <code>Decius313/Testing</code> &middot; File: <code>Gameday Plan.xlsx</code> (branch <code>main</code>).<br>
+      Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">fine-grained token</a> scoped only to this repo, with <strong>Contents: Read and write</strong> permission. The token is stored only in this browser's local storage and is sent directly to GitHub's API &mdash; never shared elsewhere. Don't share this file with your token saved in it.
+    </div>
+  </div>
+</div>
+
+<script>
+const HEADERS = ["Game Types","Game Name","Win Condition","No.of Players","1st Place","2nd Place","3rd Place"];
+const OWNER = "Decius313";
+const REPO = "Testing";
+const FILE_PATH = "Gameday Plan.xlsx";
+const BRANCH = "main";
+const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(FILE_PATH)}`;
+const TOKEN_KEY = "gamedayGithubToken";
+
+const statusBar = document.getElementById('statusBar');
+const statusText = document.getElementById('statusText');
+const tokenInput = document.getElementById('tokenInput');
+const saveTokenBtn = document.getElementById('saveTokenBtn');
+const clearTokenBtn = document.getElementById('clearTokenBtn');
+const submitBtn = document.getElementById('submitBtn');
+
+function getToken() {
+  return localStorage.getItem(TOKEN_KEY) || '';
+}
+function setStatus(connected, label) {
+  statusText.textContent = label;
+  statusBar.classList.toggle('connected', connected);
+}
+async function verifyToken(token) {
+  const resp = await fetch(API_URL, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+  });
+  return resp.ok;
+}
+async function refreshStatus() {
+  const token = getToken();
+  if (!token) { setStatus(false, 'Not connected to GitHub'); return; }
+  tokenInput.value = '••••••••••••';
+  setStatus(false, 'Checking token...');
+  const ok = await verifyToken(token);
+  setStatus(ok, ok ? `Connected to ${OWNER}/${REPO}` : 'Token saved but invalid / no access — please re-check');
+}
+
+saveTokenBtn.addEventListener('click', async () => {
+  const val = tokenInput.value.trim();
+  if (!val || val === '••••••••••••') return;
+  localStorage.setItem(TOKEN_KEY, val);
+  await refreshStatus();
+});
+clearTokenBtn.addEventListener('click', () => {
+  localStorage.removeItem(TOKEN_KEY);
+  tokenInput.value = '';
+  setStatus(false, 'Not connected to GitHub');
+});
+
+function base64ToUint8Array(b64) {
+  const binary = atob(b64.replace(/\n/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+function uint8ArrayToBase64(bytes) {
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+function getFormRow() {
+  return [
+    document.getElementById('gameType').value,
+    document.getElementById('gameName').value,
+    document.getElementById('winCondition').value,
+    document.getElementById('numPlayers').value,
+    document.getElementById('first').value,
+    document.getElementById('second').value,
+    document.getElementById('third').value
+  ];
+}
+
+async function commitRowToGithub(row) {
+  const token = getToken();
+  if (!token) throw new Error('No GitHub token saved. Paste a token and click "Save Token" first.');
+
+  // 1. Get current file + sha
+  const getResp = await fetch(API_URL + `?ref=${BRANCH}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+  });
+  if (!getResp.ok) throw new Error(`Could not read file from GitHub (${getResp.status}). Check token permissions.`);
+  const fileData = await getResp.json();
+  const sha = fileData.sha;
+  const bytes = base64ToUint8Array(fileData.content);
+
+  // 2. Parse, append row
+  const wb = XLSX.read(bytes, { type: 'array' });
+  const sheetName = wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  if (data.length === 0) data.push(HEADERS);
+  data.push(row);
+  const newWs = XLSX.utils.aoa_to_sheet(data);
+  wb.Sheets[sheetName] = newWs;
+
+  // 3. Write back to bytes, then base64
+  const outBytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const newContentB64 = uint8ArrayToBase64(new Uint8Array(outBytes));
+
+  // 4. Commit via PUT
+  const putResp = await fetch(API_URL, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: `Add game entry: ${row[1] || row[0]}`,
+      content: newContentB64,
+      sha: sha,
+      branch: BRANCH
+    })
+  });
+  if (!putResp.ok) {
+    const errBody = await putResp.json().catch(() => ({}));
+    throw new Error(`GitHub commit failed (${putResp.status}): ${errBody.message || 'unknown error'}`);
+  }
+}
+
+document.getElementById('gameForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const row = getFormRow();
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Saving...';
+  try {
+    await commitRowToGithub(row);
+    alert('Thank you for submitting');
+    e.target.reset();
+  } catch (err) {
+    alert('Could not save to GitHub: ' + err.message);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+  }
+});
+
+refreshStatus();
+</script>
+
+</body>
+</html>
