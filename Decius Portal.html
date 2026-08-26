@@ -1,0 +1,2994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decius Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0078d4;
+            --dark-bg: #000a1f;
+            --panel-blue: #1e6fd9;
+            --panel-teal: #17a99a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 40, 83, 0.5) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 119, 182, 0.4) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(0, 180, 219, 0.2) 0%, transparent 30%);
+        }
+
+        /* ===== APP LAYOUT ===== */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Animated background elements */
+        .background-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            animation: floatAround 20s infinite linear;
+        }
+
+        .floating-circle {
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-blue), transparent);
+        }
+
+        .floating-square {
+            border-radius: 4px;
+            background: linear-gradient(45deg, var(--primary-blue), #00bcf2);
+            transform: rotate(45deg);
+        }
+
+        .floating-hexagon {
+            background: linear-gradient(45deg, #00bcf2, var(--primary-blue));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+
+        .data-stream {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, var(--primary-blue), transparent);
+            animation: dataFlow 3s infinite linear;
+        }
+
+        @keyframes floatAround {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+
+        @keyframes dataFlow {
+            0% { transform: translateY(-100px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* ===== TOP PANEL ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 88px;
+            padding: 0 20px;
+            flex-shrink: 0;
+            background: linear-gradient(90deg, #ffffff 0%, #d9d9d9 100%);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===== LEFT PANEL ===== */
+        .body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+        }
+
+        /* Date/Time Display — now docked inside the top panel, right-aligned */
+        .header-icon {
+            height: 48px;
+            width: 48px;
+            object-fit: contain;
+            background: #001428;
+            border: 1px solid #1e5a8a;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0, 150, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            padding: 4px;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 14px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            min-width: 230px;
+            padding: 6px 0;
+            display: none;
+            z-index: 10;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            color: #1a1a1a;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .dropdown-item:hover {
+            background: #f2f2f2;
+        }
+
+        .dropdown-icon {
+            font-size: 1.05rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .header-nav a {
+            position: relative;
+            color: #1a1a1a;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding-bottom: 6px;
+            transition: color 0.2s ease;
+        }
+
+        .header-nav a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 2px;
+            background: #1a1a1a;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.2s ease;
+        }
+
+        .header-nav a:hover::after,
+        .header-nav a.active::after {
+            transform: scaleX(1);
+        }
+
+        .datetime-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            background: #001428;
+            padding: 6px 16px;
+            border-radius: 10px;
+            border: 1px solid #1e5a8a;
+            box-shadow: 0 0 12px rgba(0, 150, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            min-width: 150px;
+        }
+
+        .date-display {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #bfe3ff;
+            margin-bottom: 0;
+        }
+
+        .time-display {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #22d3ee;
+            letter-spacing: 0.5px;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.8), 0 0 16px rgba(34, 211, 238, 0.4);
+        }
+
+        /* ===== DASHBOARD VIEWS ===== */
+        .view {
+            display: none;
+            height: 100%;
+            width: 100%;
+            overflow-y: auto;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .view-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== MY GO TO EAT PAGE ===== */
+        .eat-page {
+            display: flex;
+            gap: 14px;
+            padding: 14px;
+            height: 100%;
+        }
+
+        .eat-filter-panel {
+            width: 220px;
+            flex-shrink: 0;
+            padding: 14px;
+            overflow-y: auto;
+        }
+
+        .eat-filter-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .eat-map-container {
+            flex: 1;
+            min-width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #eat-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .eat-route-col {
+            width: 230px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .eat-route-card {
+            padding: 12px;
+        }
+
+        .eat-route-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .eat-route-hint {
+            font-size: 0.72rem;
+            color: #cfd8e3;
+            margin-bottom: 6px;
+        }
+
+        .eat-route-status {
+            font-size: 0.72rem;
+            color: #9fd6ff;
+            font-weight: 600;
+        }
+
+        .eat-coord-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 8px 0;
+        }
+
+        .eat-coord-inputs input {
+            background: #14213d;
+            border: 1px solid #1e5a8a;
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 0.78rem;
+            font-family: 'Rajdhani', sans-serif;
+            width: 100%;
+        }
+
+        .eat-route-btn {
+            width: 100%;
+        }
+
+        .generate-route-btn {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+        }
+
+        .clear-route-btn {
+            background: rgba(224, 48, 63, 0.18);
+            border-color: #e0303f;
+            color: #ffb3ba;
+        }
+
+        .clear-route-btn:hover {
+            background: rgba(224, 48, 63, 0.32);
+        }
+
+        .eat-route-btn.waiting {
+            background: #1e5a8a;
+            color: #fff;
+        }
+
+        .km-card {
+            text-align: center;
+        }
+
+        .km-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #22d3ee;
+        }
+
+        .km-label {
+            font-size: 0.7rem;
+            color: #d7dee7;
+            margin-top: 2px;
+        }
+
+        @media (max-width: 1100px) {
+            .eat-page { flex-direction: column; height: auto; }
+            .eat-filter-panel, .eat-route-col { width: 100%; }
+            .eat-map-container { height: 50vh; }
+        }
+
+        /* ===== HOME PAGE VIDEO (background chroma-keyed out) ===== */
+        .home-video-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+        }
+
+        #home-video-canvas {
+            max-width: 80%;
+            max-height: 80vh;
+        }
+
+        /* ===== LIFETIME SPENDINGS DASHBOARD ===== */
+        .dash {
+            display: grid;
+            grid-template-columns: 190px minmax(0, 1fr) 300px;
+            gap: 12px;
+            padding: 14px;
+            min-height: 100%;
+            align-items: start;
+        }
+
+        /* --- data source connection bar --- */
+        .data-source-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 16px;
+            margin: 10px 14px 0;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid #22d3ee;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .ds-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            color: #cfd8e3;
+        }
+
+        .ds-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #7a7a7a;
+            flex-shrink: 0;
+            box-shadow: 0 0 6px rgba(255,255,255,0.2);
+        }
+
+        .ds-dot.live {
+            background: #2ecc71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.7);
+        }
+
+        .ds-dot.error {
+            background: #e0303f;
+            box-shadow: 0 0 8px rgba(224, 48, 63, 0.7);
+        }
+
+        .ds-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ds-btn {
+            background: #14213d;
+            border: 1px solid #1e5a8a;
+            color: #e6edf5;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .ds-btn:hover:not(:disabled) {
+            background: #1e5a8a;
+        }
+
+        .ds-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .dash-panel {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid #22d3ee;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+            border-radius: 8px;
+        }
+
+        /* --- left filter panel --- */
+        .filter-panel {
+            padding: 10px;
+        }
+
+        .filter-icon-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .money-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #001428;
+            border: 2px solid #22d3ee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+            overflow: hidden;
+        }
+
+        .money-badge img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .filter-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-list.select-all-row {
+            margin-bottom: 4px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .filter-list.select-all-row li {
+            font-weight: 700;
+            font-style: italic;
+            color: #9fd6ff;
+        }
+
+        .filter-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            color: #e6edf5;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .filter-list input[type="checkbox"] {
+            width: 13px;
+            height: 13px;
+            accent-color: #22d3ee;
+            cursor: pointer;
+        }
+
+        .filter-divider {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 14px 0 10px;
+        }
+
+        .clock-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #001428;
+            border: 2px solid #22d3ee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+            overflow: hidden;
+        }
+
+        .clock-badge img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .filter-list.dimmed li {
+            opacity: 0.55;
+        }
+
+        /* --- center charts --- */
+        .chart-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid #22d3ee;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+            border-radius: 8px;
+            padding: 10px 14px 6px;
+        }
+
+        .chart-card-title {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #barChart-wrap, #lineChart-wrap { width: 100%; }
+        #barChart-wrap svg, #lineChart-wrap svg { display: block; width: 100%; height: 100%; }
+        #barChart-wrap { height: 300px; }
+        #lineChart-wrap { height: 230px; }
+
+        .chart-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-row-top {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .chart-card.wide {
+            flex: 1.35;
+            min-width: 0;
+        }
+
+        .plan-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mini-stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 8px;
+        }
+
+        .mini-stat-card {
+            border-radius: 8px;
+            padding: 8px 6px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .mini-stat-card.actual {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            background: rgba(63, 123, 250, 0.22);
+        }
+
+        .mini-stat-card.planned {
+            grid-column: 2;
+            grid-row: 1;
+            background: rgba(245, 166, 35, 0.22);
+        }
+
+        .mini-stat-card.plan-current {
+            grid-column: 2;
+            grid-row: 2;
+            background: rgba(245, 166, 35, 0.12);
+        }
+
+        .mini-stat-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .mini-stat-card.plan-current .mini-stat-value {
+            font-size: 0.92rem;
+        }
+
+        .mini-stat-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #d7dee7;
+            margin-top: 1px;
+        }
+
+        .plan-actual-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #planActualChart-wrap { height: 210px; width: 100%; }
+        #planActualChart-wrap svg { display: block; width: 100%; height: 100%; }
+
+        .plan-actual-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 4px;
+            padding-top: 4px;
+        }
+
+        .pa-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-style: italic;
+            color: #d7dee7;
+        }
+
+        .pa-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+        }
+
+        .pa-dot.actual { background: #3f7bfa; }
+        .pa-dot.planned { background: #f5a623; }
+        .pa-dot.over { background: #e0303f; }
+
+        .chart-row-secondary {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .chart-card.half {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #top5Chart-wrap { height: 190px; width: 100%; }
+        #top5Chart-wrap svg { display: block; width: 100%; height: 100%; }
+
+        .top5-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            justify-content: center;
+            margin-top: 4px;
+            padding-top: 6px;
+        }
+
+        .top5-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.68rem;
+            font-style: italic;
+            color: #d7dee7;
+        }
+
+        .top5-legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            flex-shrink: 0;
+        }
+
+        .chart-canvas-box {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .legend-box {
+            width: 165px;
+            flex-shrink: 0;
+            padding-top: 4px;
+        }
+
+        .legend-title {
+            font-size: 0.85rem;
+            font-style: italic;
+            font-weight: 600;
+            color: #cfd8e3;
+            margin-bottom: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.72rem;
+            font-style: italic;
+            color: #d7dee7;
+            margin-bottom: 4px;
+        }
+
+        .legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            flex-shrink: 0;
+        }
+
+        /* --- right stats panel --- */
+        .stats-panel {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stats-header {
+            background: #000;
+            color: #fff;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-card {
+            background: #d9f2d0;
+            color: #0b1424;
+            border-radius: 6px;
+            padding: 8px 6px;
+            text-align: center;
+            transition: opacity 0.15s ease;
+        }
+
+        .stat-card.highlight {
+            background: #1f5fc7;
+            color: #fff;
+        }
+
+        .stat-card.hidden-cat {
+            opacity: 0.25;
+        }
+
+        .stat-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            margin-top: 1px;
+        }
+
+        .total-card {
+            background: #f4d9d9;
+            color: #7a1f1f;
+            text-align: center;
+            border-radius: 6px;
+            padding: 12px 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 10px 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: #2b2b2b;
+            transition: filter 0.15s ease;
+        }
+
+        .nav-btn:hover {
+            filter: brightness(1.08);
+        }
+
+        .nav-btn.entertainment { background: #c9c2ec; }
+        .nav-btn.travel { background: #f3e08a; }
+
+        @media (max-width: 1100px) {
+            .dash {
+                grid-template-columns: 1fr;
+            }
+            .legend-box { display: none; }
+            .chart-row-top { flex-direction: column; }
+        }
+
+        /* ===== EXIT CONFIRMATION MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 6, 20, 0.72);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #0b0f1a;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px;
+            padding: 22px 28px 26px;
+            width: 320px;
+            max-width: 90vw;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-gif {
+            width: 130px;
+            height: 130px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .modal-text {
+            font-size: 0.8rem;
+            color: #cfd8e3;
+            margin-bottom: 18px;
+            line-height: 1.4;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-family: 'Rajdhani', sans-serif;
+            cursor: pointer;
+        }
+
+        .modal-btn.cancel {
+            background: #1e2a45;
+            color: #e6edf5;
+            border: 1px solid #1e5a8a;
+        }
+
+        .modal-btn.cancel:hover {
+            background: #1e5a8a;
+        }
+
+        .modal-btn.confirm {
+            background: #e0303f;
+            color: #fff;
+        }
+
+        .modal-btn.confirm:hover {
+            filter: brightness(1.1);
+        }
+
+        /* ===== LOGIN MODAL (Lifetime Spendings) ===== */
+        .login-field-group {
+            text-align: left;
+            margin-bottom: 12px;
+        }
+
+        .login-field-group label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #9fb3c8;
+            margin-bottom: 5px;
+        }
+
+        .login-field-group input {
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 6px;
+            border: 1px solid #1e5a8a;
+            background: #060c18;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .login-field-group input:focus {
+            border-color: #00bcf2;
+            box-shadow: 0 0 0 2px rgba(0, 188, 242, 0.25);
+        }
+
+        .login-error {
+            font-size: 0.75rem;
+            color: #ff6b6b;
+            min-height: 16px;
+            margin: -4px 0 10px;
+            font-weight: 600;
+        }
+
+        /* ===== EXPANDABLE CHART HINT ===== */
+        .expandable-chart {
+            position: relative;
+            cursor: zoom-in;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .expandable-chart::after {
+            content: '\26F6';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.32);
+            pointer-events: none;
+        }
+
+        /* ===== CHART EXPAND OVERLAY ===== */
+        .chart-expand-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 6, 20, 0.82);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            z-index: 950;
+            padding: 24px;
+        }
+
+        .chart-expand-overlay.show {
+            display: flex;
+        }
+
+        .chart-expand-box {
+            background: #0b0f1a;
+            border: 2px solid #22d3ee;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+            border-radius: 12px;
+            width: min(1100px, 95vw);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            padding: 18px 22px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .chart-expand-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .chart-expand-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .chart-expand-close {
+            background: none;
+            border: none;
+            color: #cfd8e3;
+            font-size: 1.7rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .chart-expand-close:hover {
+            color: #fff;
+        }
+
+        .chart-expand-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expand-chart-row {
+            display: flex;
+            gap: 18px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .expand-chart-canvas {
+            flex: 1;
+            min-width: 0;
+            height: 62vh;
+        }
+
+        .expand-chart-canvas.full {
+            height: 62vh;
+            width: 100%;
+        }
+
+        .expand-chart-canvas svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .expand-legend-box {
+            width: 210px;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .chart-expand-hint {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.72rem;
+            color: #8a97ab;
+        }
+
+        @media (max-width: 800px) {
+            .expand-chart-row { flex-direction: column; }
+            .expand-legend-box { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+
+    <div class="background-elements" id="background-elements"></div>
+
+    <!-- TOP PANEL -->
+    <header class="header">
+        <img class="header-icon" src="https://64.media.tumblr.com/ab745f6b62e848a3524859c44f2196d4/414cfec4fe8a906a-e8/s400x600/5071b857df1efc347cd1489772bd521592112e52.gifv" alt="icon">
+
+        <nav class="header-nav">
+            <div class="nav-item">
+                <a href="#" class="active" data-view="default">Home Page</a>
+            </div>
+            <div class="nav-item">
+                <a href="#" data-dropdown="dashboard-dropdown">Dashboard</a>
+                <div class="dropdown-menu" id="dashboard-dropdown">
+                    <a href="#" class="dropdown-item" data-view="lifetime"><span class="dropdown-icon">💰</span>Lifetime Spendings</a>
+                    <a href="#" class="dropdown-item" data-view="entertainment"><span class="dropdown-icon">🎬</span>Entertainment Spendings</a>
+                    <a href="#" class="dropdown-item" data-view="vehicle"><span class="dropdown-icon">🚗</span>Vehicle Maintenance</a>
+                    <a href="#" class="dropdown-item" data-view="home"><span class="dropdown-icon">🏠</span>Home Maintenance</a>
+                    <a href="#" class="dropdown-item" data-view="gaming"><span class="dropdown-icon">🎮</span>Gaming</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#" data-view="games">Games</a>
+            </div>
+            <div class="nav-item">
+                <a href="#" data-dropdown="travel-dropdown">Travel Vlog</a>
+                <div class="dropdown-menu" id="travel-dropdown">
+                    <a href="#" class="dropdown-item" data-view="eat"><span class="dropdown-icon">🗺️</span>Where to go?</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="datetime-container">
+            <div class="date-display" id="current-date">Loading date...</div>
+            <div class="time-display" id="current-time">Loading time...</div>
+        </div>
+    </header>
+
+    <!-- BODY -->
+    <div class="body">
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- DEFAULT / HOME VIEW -->
+            <div class="view active" id="view-default">
+                <div class="home-video-wrap">
+                    <canvas id="home-video-canvas"></canvas>
+                    <video
+                        id="home-video-source"
+                        src="https://64.media.tumblr.com/dfb54387a097aaeab258cfa957ec6e74/21b379bf667b4c6b-09/ac1916f8b1c289d1e3c4942b799c76b07b4628ba.mov"
+                        muted loop autoplay playsinline crossorigin="anonymous"
+                        style="display:none;"></video>
+                </div>
+            </div>
+
+            <!-- LIFETIME SPENDINGS DASHBOARD -->
+            <div class="view" id="view-lifetime">
+                <div class="data-source-bar">
+                    <div class="ds-status">
+                        <span class="ds-dot" id="ds-dot"></span>
+                        <span id="ds-status-text">Showing sample data — connect your workbook for live data</span>
+                    </div>
+                    <div class="ds-actions">
+                        <button class="ds-btn" id="btn-connect-source">📁 Connect Data Source</button>
+                        <button class="ds-btn" id="btn-refresh-source" disabled>🔄 Refresh Now</button>
+                        <input type="file" id="fallback-file-input" accept=".xlsx" style="display:none">
+                    </div>
+                </div>
+                <div class="dash">
+
+                    <!-- LEFT: SLICERS -->
+                    <div class="dash-panel filter-panel">
+                        <div class="filter-icon-row">
+                            <div class="money-badge"><img src="https://img.magnific.com/premium-psd/money-cash-banknotes-coins-dollar-finance-wealth-savings-payment-income-3d-cartoon_1418807-593.jpg?semt=ais_hybrid&w=740&q=80" alt="money"></div>
+                        </div>
+                        <ul class="filter-list select-all-row" id="category-select-all"></ul>
+                        <ul class="filter-list" id="category-filter"></ul>
+
+                        <div class="filter-divider">
+                            <div class="clock-badge"><img src="https://img.magnific.com/premium-photo/clock-icon-with-bright-glowing-futuristic-blue-neon-lights-black-background-3d-render_989822-4162.jpg?w=360" alt="clock"></div>
+                        </div>
+
+                        <ul class="filter-list select-all-row dimmed" id="month-select-all"></ul>
+                        <ul class="filter-list dimmed" id="month-filter"></ul>
+                    </div>
+
+                    <!-- CENTER: CHARTS -->
+                    <div class="chart-col">
+                        <div class="chart-row-top">
+                            <div class="chart-card wide expandable-chart" data-chart-type="bar">
+                                <div class="chart-card-title">Total Spending Per Month</div>
+                                <div class="chart-row">
+                                    <div class="chart-canvas-box">
+                                        <div class="chart-wrap" id="barChart-wrap"></div>
+                                    </div>
+                                    <div class="legend-box">
+                                        <div class="legend-title">Category</div>
+                                        <div id="chart-legend"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="plan-col">
+                                <div class="mini-stats-row">
+                                    <div class="mini-stat-card actual">
+                                        <div class="mini-stat-value" id="mini-total-actual">$0.00</div>
+                                        <div class="mini-stat-label">Total Actual</div>
+                                    </div>
+                                    <div class="mini-stat-card planned">
+                                        <div class="mini-stat-value" id="mini-total-planned">$0.00</div>
+                                        <div class="mini-stat-label">Total Planned (Annual)</div>
+                                    </div>
+                                    <div class="mini-stat-card plan-current">
+                                        <div class="mini-stat-value" id="mini-plan-current">$0.00</div>
+                                        <div class="mini-stat-label">Plan (Current)</div>
+                                    </div>
+                                </div>
+                                <div class="chart-card plan-actual-card expandable-chart" data-chart-type="plan">
+                                    <div class="chart-card-title">Plan vs Actual Per Month</div>
+                                    <div class="chart-wrap" id="planActualChart-wrap"></div>
+                                    <div class="plan-actual-legend">
+                                        <span class="pa-legend-item"><span class="pa-dot actual"></span>Actual</span>
+                                        <span class="pa-legend-item"><span class="pa-dot planned"></span>Plan</span>
+                                        <span class="pa-legend-item"><span class="pa-dot over"></span>Actual Over Exceed</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-row-secondary">
+                            <div class="chart-card half expandable-chart" data-chart-type="line">
+                                <div class="chart-card-title">Range of Items Spent Per Month</div>
+                                <div class="chart-wrap" id="lineChart-wrap"></div>
+                            </div>
+
+                            <div class="chart-card half expandable-chart" data-chart-type="top5">
+                                <div class="chart-card-title">Top 5 Categories by Spend</div>
+                                <div class="chart-wrap" id="top5Chart-wrap"></div>
+                                <div class="top5-legend" id="top5-legend"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: STATS -->
+                    <div class="dash-panel stats-panel">
+                        <div class="stats-header">Overall Items Spent</div>
+                        <div class="stats-grid" id="stats-grid"></div>
+                        <div class="total-card" id="total-card">$0.00</div>
+                        <div class="nav-buttons">
+                            <button class="nav-btn entertainment" id="btn-go-entertainment">Go to Entertainment</button>
+                            <button class="nav-btn travel" id="btn-go-travel">Go to Travel</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- MY GO TO EAT PAGE -->
+            <div class="view" id="view-eat">
+                <div class="eat-page">
+                    <div class="eat-route-col">
+                        <div class="dash-panel eat-route-card">
+                            <div class="eat-route-title">Origin Location</div>
+                            <button class="ds-btn eat-route-btn" id="btn-select-origin">🗺️ Select Location on Map</button>
+                            <div class="eat-coord-inputs">
+                                <input type="number" step="any" id="origin-lat" placeholder="Latitude">
+                                <input type="number" step="any" id="origin-lng" placeholder="Longitude">
+                                <button class="ds-btn eat-route-btn" id="btn-confirm-origin">Confirm</button>
+                            </div>
+                            <div class="eat-route-status" id="origin-status">Not set</div>
+                        </div>
+
+                        <div class="dash-panel eat-route-card">
+                            <div class="eat-route-title">Destination</div>
+                            <button class="ds-btn eat-route-btn" id="btn-select-destination">🗺️ Select Destination</button>
+                            <div class="eat-route-hint">Click the button, then click on the map</div>
+                            <div class="eat-route-status" id="destination-status">Not set</div>
+                        </div>
+
+                        <button class="ds-btn generate-route-btn" id="btn-generate-route">🧭 Generate Best Route</button>
+                        <button class="ds-btn generate-route-btn clear-route-btn" id="btn-clear-route">✖ Clear</button>
+
+                        <div class="dash-panel eat-route-card km-card">
+                            <div class="km-value" id="km-value">&mdash; km</div>
+                            <div class="km-label">Total KM Travelled by Car</div>
+                        </div>
+                    </div>
+
+                    <div class="dash-panel eat-map-container">
+                        <div id="eat-map"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OTHER PLACEHOLDER VIEWS -->
+            <div class="view" id="view-entertainment">
+                <div class="view-placeholder">Entertainment Spendings report coming soon</div>
+            </div>
+            <div class="view" id="view-vehicle">
+                <div class="view-placeholder">Vehicle Maintenance report coming soon</div>
+            </div>
+            <div class="view" id="view-home">
+                <div class="view-placeholder">Home Maintenance report coming soon</div>
+            </div>
+            <div class="view" id="view-gaming">
+                <div class="view-placeholder">Gaming report coming soon</div>
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+    <!-- EXIT CONFIRMATION MODAL (shown when ESC is pressed on the Lifetime Spendings dashboard) -->
+    <div class="modal-overlay" id="exit-confirm-overlay">
+        <div class="modal-box">
+            <img class="modal-gif" src="https://media.tenor.com/rbx3ph5SLRUAAAAj/pikachu-pokemon.gif" alt="waving goodbye">
+            <div class="modal-title">Leave the dashboard?</div>
+            <div class="modal-text">Your filters won't be saved. Are you sure you want to exit Lifetime Spendings?</div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" id="btn-exit-cancel">Stay</button>
+                <button class="modal-btn confirm" id="btn-exit-confirm">Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL (shown when Lifetime Spendings is clicked) -->
+    <div class="modal-overlay" id="login-overlay">
+        <div class="modal-box">
+            <img class="modal-gif" src="https://media1.tenor.com/m/aFZDPR_LCBIAAAAC/toy-story-buzz-lightyear.gif" alt="Buzz Lightyear">
+            <div class="modal-title">Restricted Access</div>
+            <div class="modal-text">Enter your credentials to view Lifetime Spendings.</div>
+            <form id="login-form">
+                <div class="login-field-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" autocomplete="username" autofocus>
+                </div>
+                <div class="login-field-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" autocomplete="current-password">
+                </div>
+                <div class="login-error" id="login-error"></div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn cancel" id="btn-login-cancel">Cancel</button>
+                    <button type="submit" class="modal-btn confirm" id="btn-login-submit">Enter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COMING SOON MODAL (shown when a not-yet-built page is clicked) -->
+    <div class="modal-overlay" id="coming-soon-overlay">
+        <div class="modal-box">
+            <img class="modal-gif" src="https://media1.tenor.com/m/tUMGdj7aBSoAAAAC/cl07.gif" alt="in progress">
+            <div class="modal-title">Coming Soon</div>
+            <div class="modal-text">This page isn't available yet &mdash; it's currently in progress. Check back soon!</div>
+            <div class="modal-actions">
+                <button class="modal-btn confirm" id="btn-coming-soon-ok">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHART EXPAND OVERLAY (shown on double-click of any visual) -->
+    <div class="chart-expand-overlay" id="chart-expand-overlay">
+        <div class="chart-expand-box">
+            <div class="chart-expand-header">
+                <div class="chart-expand-title" id="chart-expand-title">Chart</div>
+                <button class="chart-expand-close" id="chart-expand-close">&times;</button>
+            </div>
+            <div class="chart-expand-body" id="chart-expand-body"></div>
+            <div class="chart-expand-hint">Press ESC or click outside to close</div>
+        </div>
+    </div>
+
+    <script>
+        // Create animated background elements
+        function createBackgroundElements() {
+            const container = document.getElementById('background-elements');
+            container.innerHTML = '';
+
+            // Floating shapes
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.classList.add('floating-element');
+
+                const shapeType = Math.floor(Math.random() * 3);
+                if (shapeType === 0) {
+                    element.classList.add('floating-circle');
+                } else if (shapeType === 1) {
+                    element.classList.add('floating-square');
+                } else {
+                    element.classList.add('floating-hexagon');
+                }
+
+                const size = Math.random() * 50 + 30;
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                element.style.left = `${Math.random() * 100}%`;
+                element.style.top = `${Math.random() * 100}%`;
+                element.style.animationDuration = `${Math.random() * 40 + 20}s`;
+                element.style.animationDelay = `${Math.random() * 10}s`;
+                element.style.opacity = Math.random() * 0.12 + 0.03;
+
+                container.appendChild(element);
+            }
+
+            // Data streams
+            for (let i = 0; i < 12; i++) {
+                const stream = document.createElement('div');
+                stream.classList.add('data-stream');
+                stream.style.left = `${Math.random() * 100}%`;
+                stream.style.animationDelay = `${Math.random() * 3}s`;
+                stream.style.animationDuration = `${Math.random() * 5 + 3}s`;
+
+                container.appendChild(stream);
+            }
+        }
+
+        // Update date and time in real-time
+        function updateDateTime() {
+            const now = new Date();
+
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const dateString = now.toLocaleDateString('en-US', dateOptions);
+
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+
+            const timeString = `${hours}:${minutes}:${seconds} ${ampm}`;
+
+            document.getElementById('current-date').textContent = dateString;
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        createBackgroundElements();
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // ---------- Home page video with background removed (chroma-key via canvas) ----------
+        (function setupHomeVideo() {
+            const video = document.getElementById('home-video-source');
+            const canvas = document.getElementById('home-video-canvas');
+            if (!video || !canvas) return;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            let bgColor = null;
+            let rafId = null;
+            let usingFallback = false;
+
+            function sampleBackgroundColor(w, h) {
+                // average the 4 corner pixels of the first frame as the background reference
+                const corners = [
+                    ctx.getImageData(0, 0, 1, 1).data,
+                    ctx.getImageData(w - 1, 0, 1, 1).data,
+                    ctx.getImageData(0, h - 1, 1, 1).data,
+                    ctx.getImageData(w - 1, h - 1, 1, 1).data
+                ];
+                let r = 0, g = 0, b = 0;
+                corners.forEach(c => { r += c[0]; g += c[1]; b += c[2]; });
+                return [r / 4, g / 4, b / 4];
+            }
+
+            function fallbackToPlainVideo() {
+                usingFallback = true;
+                if (rafId) cancelAnimationFrame(rafId);
+                canvas.style.display = 'none';
+                video.style.display = 'block';
+                video.style.maxWidth = '80%';
+                video.style.maxHeight = '80vh';
+                video.style.mixBlendMode = 'screen';
+            }
+
+            function drawFrame() {
+                if (usingFallback) return;
+                if (video.paused || video.ended) {
+                    rafId = requestAnimationFrame(drawFrame);
+                    return;
+                }
+                try {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = frame.data;
+
+                    if (!bgColor) bgColor = sampleBackgroundColor(canvas.width, canvas.height);
+                    const [br, bg, bb] = bgColor;
+                    const THRESH_LOW = 28, THRESH_HIGH = 60;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        const dr = data[i] - br, dg = data[i + 1] - bg, db = data[i + 2] - bb;
+                        const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+                        if (dist <= THRESH_LOW) {
+                            data[i + 3] = 0;
+                        } else if (dist < THRESH_HIGH) {
+                            data[i + 3] = Math.round(255 * ((dist - THRESH_LOW) / (THRESH_HIGH - THRESH_LOW)));
+                        }
+                    }
+                    ctx.putImageData(frame, 0, 0);
+                } catch (err) {
+                    // canvas got tainted (no CORS from the media host) - fall back to a plain
+                    // video element with a screen blend, which still hides pure-black backgrounds
+                    console.warn('Chroma-key canvas unavailable, falling back to blend mode:', err);
+                    fallbackToPlainVideo();
+                    return;
+                }
+                rafId = requestAnimationFrame(drawFrame);
+            }
+
+            video.addEventListener('loadedmetadata', () => {
+                canvas.width = video.videoWidth || 720;
+                canvas.height = video.videoHeight || 720;
+            });
+
+            video.addEventListener('loadeddata', () => {
+                video.play().catch(() => {});
+                rafId = requestAnimationFrame(drawFrame);
+            });
+
+            video.addEventListener('error', fallbackToPlainVideo);
+        })();
+
+        // ---------- "Coming soon" modal for pages that aren't built yet ----------
+        const COMING_SOON_VIEWS = ['entertainment', 'vehicle', 'home', 'gaming', 'games'];
+        const comingSoonOverlay = document.getElementById('coming-soon-overlay');
+        const btnComingSoonOk = document.getElementById('btn-coming-soon-ok');
+
+        function openComingSoonModal() {
+            comingSoonOverlay.classList.add('show');
+        }
+
+        function closeComingSoonModal() {
+            comingSoonOverlay.classList.remove('show');
+        }
+
+        btnComingSoonOk.addEventListener('click', closeComingSoonModal);
+        comingSoonOverlay.addEventListener('click', (e) => {
+            if (e.target === comingSoonOverlay) closeComingSoonModal();
+        });
+
+        // ---------- Login modal for Lifetime Spendings ----------
+        const LOGIN_USERNAME = 'admin';
+        const LOGIN_PASSWORD = 'szeretlek';
+
+        const loginOverlay = document.getElementById('login-overlay');
+        const loginForm = document.getElementById('login-form');
+        const loginUsernameInput = document.getElementById('login-username');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginError = document.getElementById('login-error');
+        const btnLoginCancel = document.getElementById('btn-login-cancel');
+
+        let loginSuccessCallback = null;
+
+        function openLoginModal(onSuccess) {
+            loginSuccessCallback = onSuccess;
+            loginError.textContent = '';
+            loginForm.reset();
+            loginOverlay.classList.add('show');
+            requestAnimationFrame(() => loginUsernameInput.focus());
+        }
+
+        function closeLoginModal() {
+            loginOverlay.classList.remove('show');
+            loginSuccessCallback = null;
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enteredUser = loginUsernameInput.value;
+            const enteredPass = loginPasswordInput.value;
+            if (enteredUser === LOGIN_USERNAME && enteredPass === LOGIN_PASSWORD) {
+                const callback = loginSuccessCallback;
+                closeLoginModal();
+                if (callback) callback();
+            } else {
+                loginError.textContent = 'Incorrect username or password.';
+                loginPasswordInput.value = '';
+                loginPasswordInput.focus();
+            }
+        });
+
+        btnLoginCancel.addEventListener('click', closeLoginModal);
+        loginOverlay.addEventListener('click', (e) => {
+            if (e.target === loginOverlay) closeLoginModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && loginOverlay.classList.contains('show')) {
+                closeLoginModal();
+            }
+        });
+
+        // Nav menu selection
+        document.querySelectorAll('.header-nav > .nav-item > a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const dropdownId = link.getAttribute('data-dropdown');
+                if (dropdownId) {
+                    const dropdown = document.getElementById(dropdownId);
+                    const isOpen = dropdown.classList.contains('show');
+                    document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
+                    if (!isOpen) dropdown.classList.add('show');
+                } else {
+                    document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
+                }
+
+                const view = link.getAttribute('data-view');
+                if (view && COMING_SOON_VIEWS.includes(view)) {
+                    openComingSoonModal();
+                    return;
+                }
+
+                document.querySelectorAll('.header-nav > .nav-item > a').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                if (view) showView(view);
+            });
+        });
+
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
+
+                const view = item.getAttribute('data-view');
+                if (view && COMING_SOON_VIEWS.includes(view)) {
+                    openComingSoonModal();
+                    return;
+                }
+
+                const activateParent = () => {
+                    document.querySelectorAll('.header-nav > .nav-item > a').forEach(l => l.classList.remove('active'));
+                    const parentTrigger = item.closest('.nav-item')?.querySelector('a[data-dropdown]');
+                    if (parentTrigger) parentTrigger.classList.add('active');
+                };
+
+                if (view === 'lifetime') {
+                    openLoginModal(() => {
+                        showView('lifetime');
+                        activateParent();
+                    });
+                    return;
+                }
+
+                if (view) showView(view);
+                activateParent();
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-item')) {
+                document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        function showView(name) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const target = document.getElementById('view-' + name);
+            if (target) target.classList.add('active');
+            if (name === 'lifetime') {
+                refreshDashboard();
+            }
+            if (name === 'eat') {
+                // Leaflet needs the container to be visible (non-zero size) before it can
+                // size itself correctly, so init/resize happens right after it's shown
+                requestAnimationFrame(() => {
+                    if (typeof initEatMap === 'function') initEatMap();
+                    if (typeof eatMap !== 'undefined' && eatMap) eatMap.invalidateSize();
+                });
+            }
+        }
+    </script>
+
+    <script>
+        /* =========================================================
+           LIFETIME SPENDINGS DASHBOARD
+           Data source: Power_BI_-_Fortuna_2026.xlsx -> "PowerBI-Total-2026"
+        ========================================================= */
+
+        /* ---- default / fallback sample data (shown until a workbook is connected) ---- */
+        /* synced from Power_BI_-_Fortuna_2026.xlsx -> "PowerBI-Total-2026" */
+        const SAMPLE_MONTHLY_DATA = {
+            "January":  {"Food / Drink":30.3,"Lunch":109.7,"Dinner":80.15,"Shopping":92.45,"Gas":127,"Necessities":2.72,"Entertainment":72.88,"Home Maintenance":230.6,"Bills":165.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":201,"Car Maintenance":665},
+            "February": {"Food / Drink":18.1,"Lunch":123.4,"Dinner":54.4,"Shopping":169.89,"Gas":96.6,"Necessities":1347.5,"Entertainment":281.42,"Home Maintenance":850,"Bills":123.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":0,"Car Maintenance":258.1},
+            "March":    {"Food / Drink":13.8,"Lunch":4.2,"Dinner":135.7,"Shopping":143.5,"Gas":99.6,"Necessities":107.76,"Entertainment":44.74,"Home Maintenance":133.8,"Bills":215.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":80,"Car Maintenance":12},
+            "April":    {"Food / Drink":15.3,"Lunch":58.8,"Dinner":71.8,"Shopping":131.54,"Gas":106.7,"Necessities":44.67,"Entertainment":137.09,"Home Maintenance":45,"Bills":113.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":1,"Car Maintenance":0},
+            "May":      {"Food / Drink":43,"Lunch":59.7,"Dinner":74.4,"Shopping":174.17,"Gas":137,"Necessities":190,"Entertainment":37.01,"Home Maintenance":0,"Bills":219.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":201,"Car Maintenance":125},
+            "June":     {"Food / Drink":33.1,"Lunch":92.5,"Dinner":56.5,"Shopping":223.86,"Gas":87,"Necessities":32.9,"Entertainment":327.04,"Home Maintenance":300,"Bills":113.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":0,"Car Maintenance":7},
+            "July":     {"Food / Drink":27.4,"Lunch":62.4,"Dinner":61.6,"Shopping":109.61,"Gas":86,"Necessities":28.02,"Entertainment":56.8,"Home Maintenance":0,"Bills":125.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":1,"Car Maintenance":8},
+            "August":   {"Food / Drink":26.8,"Lunch":76.2,"Dinner":49.4,"Shopping":189.19,"Gas":123,"Necessities":92.18,"Entertainment":24.38,"Home Maintenance":35,"Bills":125.09,"TAIB":200,"Housing":1200,"Nafkah":800,"Donation":0,"Car Maintenance":849}
+        };
+
+        const MONTH_ORDER = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        const allMonths = MONTH_ORDER;
+
+        // budget plan figures: a flat monthly recurring budget, and a separate annual target
+        const PLAN_MONTHLY = 3000;
+        const PLAN_ANNUAL = 36000;
+
+        // the 12 shades from the reference swatch image, plus 2 extra shades in the
+        // same green/blue family (extended so all 14 categories get a distinct color)
+        const BASE_COLORS = {
+            "Bills": "#d9f2d0", "Car Maintenance": "#d9f2d0", "Dinner": "#c1e5f5", "Donation": "#dceaf7",
+            "Entertainment": "#b4e5a2", "Food / Drink": "#84e291", "Gas": "#83cbeb", "Home Maintenance": "#a6caec",
+            "Housing": "#8ed973", "Lunch": "#47d45a", "Nafkah": "#46b1e1", "Necessities": "#d9f2d0",
+            "Shopping": "#339840", "TAIB": "#386b9c"
+        };
+        const FALLBACK_PALETTE = ["#d9f2d0","#c2f1c8","#c1e5f5","#dceaf7","#b4e5a2","#84e291","#83cbeb","#a6caec","#8ed973","#47d45a","#46b1e1","#4e95d9","#339840","#386b9c"];
+
+        // only these categories use the dark "highlighted" card style; everyone else
+        // gets the plain light-green card regardless of how their totals rank
+        const ALWAYS_HIGHLIGHT = ["Housing", "Nafkah"];
+
+        // ---- mutable data model (rebuilt by setDataModel when a workbook connects) ----
+        let monthlyData = SAMPLE_MONTHLY_DATA;
+        let monthsWithData = MONTH_ORDER.filter(m => monthlyData[m]);
+        let categories = ["Bills","Car Maintenance","Dinner","Donation","Entertainment","Food / Drink","Gas","Home Maintenance","Housing","Lunch","Nafkah","Necessities","Shopping","TAIB"];
+        let catColors = Object.assign({}, BASE_COLORS);
+        let highlightedCards = ["Housing","Nafkah"];
+        let cardOrder = ["Car Maintenance","Home Maintenance","Donation","Gas","Bills","Dinner","Entertainment","Food / Drink","Housing","Lunch","Nafkah","Necessities","Shopping","TAIB"];
+
+        const state = {
+            categories: new Set(categories),
+            months: new Set(monthsWithData)
+        };
+
+        // rebuilds every derived structure from a fresh { month: { category: amount } } object
+        function setDataModel(newMonthlyData, newCategories) {
+            monthlyData = newMonthlyData;
+            monthsWithData = MONTH_ORDER.filter(m => monthlyData[m]);
+            categories = newCategories.slice().sort((a, b) => a.localeCompare(b));
+
+            catColors = {};
+            categories.forEach((cat, i) => {
+                catColors[cat] = BASE_COLORS[cat] || FALLBACK_PALETTE[i % FALLBACK_PALETTE.length];
+            });
+
+            const totals = {};
+            categories.forEach(c => totals[c] = 0);
+            monthsWithData.forEach(m => categories.forEach(c => totals[c] += (monthlyData[m][c] || 0)));
+            cardOrder = categories.slice();
+            highlightedCards = categories.filter(c => ALWAYS_HIGHLIGHT.includes(c));
+
+            state.categories = new Set(categories);
+            state.months = new Set(monthsWithData);
+
+            renderFilters();
+            renderLegend();
+            refreshDashboard();
+        }
+
+        function money(val) {
+            if (val >= 1000 || val <= -1000) return "$" + (val / 1000).toFixed(2) + "K";
+            return "$" + val.toFixed(2);
+        }
+
+        function moneyFull(val) {
+            return "$" + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function activeMonths() {
+            return monthsWithData.filter(m => state.months.has(m));
+        }
+
+        function activeCategories() {
+            return categories.filter(c => state.categories.has(c));
+        }
+
+        function computeCategoryTotals() {
+            const totals = {};
+            categories.forEach(c => totals[c] = 0);
+            activeMonths().forEach(m => {
+                categories.forEach(c => {
+                    if (state.categories.has(c)) totals[c] += (monthlyData[m][c] || 0);
+                });
+            });
+            return totals;
+        }
+
+        function computeMonthTotals() {
+            const totals = {};
+            activeMonths().forEach(m => {
+                let t = 0;
+                activeCategories().forEach(c => t += (monthlyData[m][c] || 0));
+                totals[m] = t;
+            });
+            return totals;
+        }
+
+        function computeGrandTotal(catTotals) {
+            return Object.values(catTotals).reduce((a, b) => a + b, 0);
+        }
+
+        // ---------- render filter lists ----------
+        function renderFilters() {
+            // --- category select-all ---
+            const catAllUl = document.getElementById('category-select-all');
+            catAllUl.innerHTML = '<li><input type="checkbox" id="cat-select-all-cb"> <span>Select All</span></li>';
+            const catAllCb = document.getElementById('cat-select-all-cb');
+
+            const catUl = document.getElementById('category-filter');
+            catUl.innerHTML = '';
+            categories.forEach(cat => {
+                const li = document.createElement('li');
+                li.innerHTML = `<input type="checkbox" data-cat="${cat}" checked> <span>${cat}</span>`;
+                catUl.appendChild(li);
+            });
+            const catCheckboxes = () => Array.from(catUl.querySelectorAll('input'));
+
+            function syncCatSelectAll() {
+                const boxes = catCheckboxes();
+                const checkedCount = boxes.filter(cb => cb.checked).length;
+                catAllCb.checked = boxes.length > 0 && checkedCount === boxes.length;
+                catAllCb.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+            }
+
+            catCheckboxes().forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const cat = cb.getAttribute('data-cat');
+                    if (cb.checked) state.categories.add(cat); else state.categories.delete(cat);
+                    syncCatSelectAll();
+                    refreshDashboard();
+                });
+            });
+
+            catAllCb.addEventListener('change', () => {
+                const checkAll = catAllCb.checked;
+                catAllCb.indeterminate = false;
+                catCheckboxes().forEach(cb => {
+                    cb.checked = checkAll;
+                    const cat = cb.getAttribute('data-cat');
+                    if (checkAll) state.categories.add(cat); else state.categories.delete(cat);
+                });
+                refreshDashboard();
+            });
+
+            syncCatSelectAll();
+
+            // --- month select-all ---
+            const monAllUl = document.getElementById('month-select-all');
+            monAllUl.innerHTML = '<li><input type="checkbox" id="month-select-all-cb"> <span>Select All</span></li>';
+            const monAllCb = document.getElementById('month-select-all-cb');
+
+            const monUl = document.getElementById('month-filter');
+            monUl.innerHTML = '';
+            allMonths.forEach(m => {
+                const hasData = monthsWithData.includes(m);
+                const li = document.createElement('li');
+                li.style.opacity = hasData ? '1' : '0.35';
+                li.innerHTML = `<input type="checkbox" data-month="${m}" ${hasData ? 'checked' : 'disabled'}> <span>${m}</span>`;
+                monUl.appendChild(li);
+            });
+            const monCheckboxes = () => Array.from(monUl.querySelectorAll('input:not(:disabled)'));
+
+            function syncMonthSelectAll() {
+                const boxes = monCheckboxes();
+                const checkedCount = boxes.filter(cb => cb.checked).length;
+                monAllCb.checked = boxes.length > 0 && checkedCount === boxes.length;
+                monAllCb.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+            }
+
+            monCheckboxes().forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const m = cb.getAttribute('data-month');
+                    if (cb.checked) state.months.add(m); else state.months.delete(m);
+                    syncMonthSelectAll();
+                    refreshDashboard();
+                });
+            });
+
+            monAllCb.addEventListener('change', () => {
+                const checkAll = monAllCb.checked;
+                monAllCb.indeterminate = false;
+                monCheckboxes().forEach(cb => {
+                    cb.checked = checkAll;
+                    const m = cb.getAttribute('data-month');
+                    if (checkAll) state.months.add(m); else state.months.delete(m);
+                });
+                refreshDashboard();
+            });
+
+            syncMonthSelectAll();
+        }
+
+        // ---------- legend ----------
+        function renderLegend(containerId) {
+            const box = document.getElementById(containerId || 'chart-legend');
+            if (!box) return;
+            box.innerHTML = '';
+            categories.forEach(cat => {
+                const row = document.createElement('div');
+                row.className = 'legend-item';
+                row.innerHTML = `<span class="legend-dot" style="background:${catColors[cat]}"></span><span>${cat}</span>`;
+                box.appendChild(row);
+            });
+        }
+
+        // ---------- stat cards ----------
+        function renderStats(catTotals, grandTotal) {
+            const grid = document.getElementById('stats-grid');
+            grid.innerHTML = '';
+            cardOrder.forEach(cat => {
+                const card = document.createElement('div');
+                const isHighlighted = highlightedCards.includes(cat);
+                card.className = 'stat-card' + (isHighlighted ? ' highlight' : '') + (state.categories.has(cat) ? '' : ' hidden-cat');
+                card.innerHTML = `<div class="stat-value">${money(catTotals[cat] || 0)}</div><div class="stat-label">${cat}</div>`;
+                grid.appendChild(card);
+            });
+            document.getElementById('total-card').textContent = moneyFull(grandTotal);
+        }
+
+        // ---------- charts (pure inline SVG, no external libraries) ----------
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+
+        function svgEl(tag, attrs) {
+            const el = document.createElementNS(SVG_NS, tag);
+            for (const k in attrs) el.setAttribute(k, attrs[k]);
+            return el;
+        }
+
+        function niceNum(range, round) {
+            if (range <= 0) return 1;
+            const exponent = Math.floor(Math.log10(range));
+            const fraction = range / Math.pow(10, exponent);
+            let niceFraction;
+            if (round) {
+                if (fraction < 1.5) niceFraction = 1;
+                else if (fraction < 3) niceFraction = 2;
+                else if (fraction < 7) niceFraction = 5;
+                else niceFraction = 10;
+            } else {
+                if (fraction <= 1) niceFraction = 1;
+                else if (fraction <= 2) niceFraction = 2;
+                else if (fraction <= 5) niceFraction = 5;
+                else niceFraction = 10;
+            }
+            return niceFraction * Math.pow(10, exponent);
+        }
+
+        // returns clean, evenly-spaced axis ticks (e.g. 0,200,400,600,800,1000) instead of
+        // dividing an arbitrary max into N equal fractional slices
+        function niceTicks(maxValue, targetTickCount) {
+            if (!(maxValue > 0)) maxValue = 1;
+            const range = niceNum(maxValue, false);
+            const step = niceNum(range / (targetTickCount - 1), true);
+            const axisMax = Math.ceil(maxValue / step) * step;
+            const ticks = [];
+            for (let v = 0; v <= axisMax + step / 2; v += step) {
+                ticks.push(Math.round(v * 1000) / 1000);
+            }
+            return { step, max: axisMax, ticks };
+        }
+
+        function trimNum(n, decimals) {
+            return parseFloat(n.toFixed(decimals));
+        }
+
+        function fmtK(v) {
+            if (v === 0) return '0';
+            if (v >= 1000) return trimNum(v / 1000, 2) + 'K';
+            return String(trimNum(v, 2));
+        }
+
+        // picks readable text color (near-black or white) for a given fill color,
+        // so labels stay legible on the lighter pastel shades in the palette
+        function textColorOn(hex) {
+            const c = hex.replace('#', '');
+            const r = parseInt(c.substring(0, 2), 16);
+            const g = parseInt(c.substring(2, 4), 16);
+            const b = parseInt(c.substring(4, 6), 16);
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return luminance > 0.62 ? '#12203a' : '#ffffff';
+        }
+
+        function fmt2(v) {
+            return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function buildBarChart(monthList, catTotals, wrapId) {
+            const wrap = document.getElementById(wrapId || 'barChart-wrap');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+
+            const W = 900, H = 300;
+            const padL = 46, padR = 12, padT = 34, padB = 26;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            const cats = activeCategories();
+            const monthTotalsArr = monthList.map(m => cats.reduce((s, c) => s + (monthlyData[m][c] || 0), 0));
+            const axis = niceTicks(Math.max(1, ...monthTotalsArr), 6);
+            const maxVal = axis.max;
+
+            const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet' });
+
+            // gridlines + y labels
+            axis.ticks.forEach(val => {
+                const y = padT + plotH - (val / maxVal) * plotH;
+                svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: y, y2: y, stroke: 'rgba(255,255,255,0.07)', 'stroke-width': 1 }));
+                const label = svgEl('text', { x: padL - 8, y: y + 3, fill: '#cfd8e3', 'font-size': 10, 'text-anchor': 'end', 'font-family': 'Rajdhani, sans-serif' });
+                label.textContent = fmtK(val);
+                svg.appendChild(label);
+            });
+
+            const n = monthList.length || 1;
+            const bandW = plotW / n;
+            const barW = Math.min(60, bandW * 0.55);
+
+            monthList.forEach((m, i) => {
+                const cx = padL + bandW * i + bandW / 2;
+                let cum = 0;
+                cats.forEach(cat => {
+                    const val = monthlyData[m][cat] || 0;
+                    if (val <= 0) return;
+                    const y0 = padT + plotH - (cum / maxVal) * plotH;
+                    const h = (val / maxVal) * plotH;
+                    const y1 = y0 - h;
+                    const rect = svgEl('rect', {
+                        x: cx - barW / 2, y: y1, width: barW, height: Math.max(h, 0),
+                        fill: catColors[cat]
+                    });
+                    svg.appendChild(rect);
+
+                    if (val >= (maxVal * 0.03) && h >= 11) {
+                        const t = svgEl('text', {
+                            x: cx, y: y1 + h / 2 + 3, fill: textColorOn(catColors[cat]), 'font-size': 9,
+                            'font-weight': 600, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif'
+                        });
+                        t.textContent = fmt2(val);
+                        svg.appendChild(t);
+                    }
+                    cum += val;
+                });
+
+                // total label above stack
+                if (cum > 0) {
+                    const yTop = padT + plotH - (cum / maxVal) * plotH;
+                    const totalLabel = svgEl('text', {
+                        x: cx, y: yTop - 8, fill: '#ffffff', 'font-size': 11,
+                        'font-weight': 700, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif'
+                    });
+                    totalLabel.textContent = fmt2(cum);
+                    svg.appendChild(totalLabel);
+                }
+
+                // x-axis month label
+                const xLabel = svgEl('text', {
+                    x: cx, y: H - 6, fill: '#cfd8e3', 'font-size': 11, 'font-weight': 600,
+                    'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif'
+                });
+                xLabel.textContent = m;
+                svg.appendChild(xLabel);
+            });
+
+            wrap.appendChild(svg);
+        }
+
+        function buildLineChart(monthList, monthTotals, wrapId) {
+            const wrap = document.getElementById(wrapId || 'lineChart-wrap');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+
+            const W = 480, H = 230;
+            const padL = 46, padR = 12, padT = 30, padB = 26;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            const values = monthList.map(m => monthTotals[m] || 0);
+            const axis = niceTicks(Math.max(1, ...values), 6);
+            const maxVal = axis.max;
+
+            const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet' });
+
+            axis.ticks.forEach(val => {
+                const y = padT + plotH - (val / maxVal) * plotH;
+                svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: y, y2: y, stroke: 'rgba(255,255,255,0.07)', 'stroke-width': 1 }));
+                const label = svgEl('text', { x: padL - 8, y: y + 3, fill: '#cfd8e3', 'font-size': 10, 'text-anchor': 'end', 'font-family': 'Rajdhani, sans-serif' });
+                label.textContent = fmtK(val);
+                svg.appendChild(label);
+            });
+
+            const n = monthList.length;
+            if (n === 0) { wrap.appendChild(svg); return; }
+
+            const bandW = plotW / n;
+            const points = monthList.map((m, i) => {
+                const x = padL + bandW * i + bandW / 2;
+                const y = padT + plotH - (values[i] / maxVal) * plotH;
+                return { x, y, v: values[i], m };
+            });
+
+            // smooth path via Catmull-Rom -> cubic Bezier
+            let d = '';
+            if (points.length === 1) {
+                d = `M ${points[0].x} ${points[0].y}`;
+            } else {
+                d = `M ${points[0].x} ${points[0].y} `;
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p0 = points[i === 0 ? i : i - 1];
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+                    const cp1x = p1.x + (p2.x - p0.x) / 6;
+                    const cp1y = p1.y + (p2.y - p0.y) / 6;
+                    const cp2x = p2.x - (p3.x - p1.x) / 6;
+                    const cp2y = p2.y - (p3.y - p1.y) / 6;
+                    d += `C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y} `;
+                }
+            }
+
+            // fill area under curve
+            const areaD = d + ` L ${points[points.length - 1].x} ${padT + plotH} L ${points[0].x} ${padT + plotH} Z`;
+            svg.appendChild(svgEl('path', { d: areaD, fill: 'rgba(63,123,250,0.10)', stroke: 'none' }));
+            svg.appendChild(svgEl('path', { d, fill: 'none', stroke: '#3f7bfa', 'stroke-width': 2.5 }));
+
+            const minVal = Math.min(...values);
+
+            points.forEach(p => {
+                svg.appendChild(svgEl('circle', { cx: p.x, cy: p.y, r: 3.2, fill: '#3f7bfa' }));
+
+                const isLowest = p.v === minVal;
+                const labelY = isLowest ? p.y + 16 : p.y - 9;
+                const t = svgEl('text', {
+                    x: p.x, y: labelY, fill: '#ff5555', 'font-size': 9,
+                    'font-weight': 700, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif'
+                });
+                t.textContent = (p.v / 1000).toFixed(1) + 'K';
+                svg.appendChild(t);
+
+                const xLabel = svgEl('text', {
+                    x: p.x, y: H - 6, fill: '#cfd8e3', 'font-size': 9, 'font-weight': 600,
+                    'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif'
+                });
+                xLabel.textContent = p.m;
+                svg.appendChild(xLabel);
+            });
+
+            wrap.appendChild(svg);
+        }
+
+        // ---------- Top 5 categories: pseudo-3D isometric line chart ----------
+        function buildTop5Chart(monthList, wrapId, legendId) {
+            const wrap = document.getElementById(wrapId || 'top5Chart-wrap');
+            const legendBox = document.getElementById(legendId || 'top5-legend');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+            if (legendBox) legendBox.innerHTML = '';
+
+            const catTotals = computeCategoryTotals();
+            const top5 = activeCategories()
+                .map(c => [c, catTotals[c] || 0])
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(e => e[0]);
+
+            const W = 480, H = 190;
+            const padL = 44, padR = 46, padT = 20, padB = 30;
+            const depthX = 10, depthY = 7; // per-series isometric offset
+            const plotW = W - padL - padR - depthX * (top5.length - 1 > 0 ? top5.length - 1 : 0);
+            const plotH = H - padT - padB - depthY * (top5.length - 1 > 0 ? top5.length - 1 : 0);
+
+            const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet' });
+
+            if (top5.length === 0 || monthList.length === 0) {
+                const t = svgEl('text', { x: W / 2, y: H / 2, fill: '#cfd8e3', 'font-size': 11, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif' });
+                t.textContent = 'No categories selected';
+                svg.appendChild(t);
+                wrap.appendChild(svg);
+                return;
+            }
+
+            let maxVal = 0;
+            top5.forEach(cat => monthList.forEach(m => { maxVal = Math.max(maxVal, monthlyData[m][cat] || 0); }));
+            const axis = niceTicks(Math.max(1, maxVal), 4);
+            maxVal = axis.max;
+
+            const n = monthList.length;
+            const bandW = plotW / n;
+
+            // draw floor gridlines (front-most plane) for reference
+            axis.ticks.forEach(val => {
+                const y = padT + plotH - (val / maxVal) * plotH;
+                svg.appendChild(svgEl('line', {
+                    x1: padL, x2: padL + plotW, y1: y, y2: y,
+                    stroke: 'rgba(255,255,255,0.06)', 'stroke-width': 1
+                }));
+            });
+
+            // draw farthest series first so nearer ones layer on top
+            for (let s = top5.length - 1; s >= 0; s--) {
+                const cat = top5[s];
+                const ox = s * depthX;
+                const oy = s * depthY;
+                const color = catColors[cat] || '#3f7bfa';
+
+                const points = monthList.map((m, i) => {
+                    const val = monthlyData[m][cat] || 0;
+                    const x = padL + ox + bandW * i + bandW / 2;
+                    const y = padT + oy + plotH - (val / maxVal) * plotH;
+                    return { x, y };
+                });
+
+                let d = `M ${points[0].x} ${points[0].y} `;
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p0 = points[i === 0 ? i : i - 1];
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+                    const cp1x = p1.x + (p2.x - p0.x) / 6;
+                    const cp1y = p1.y + (p2.y - p0.y) / 6;
+                    const cp2x = p2.x - (p3.x - p1.x) / 6;
+                    const cp2y = p2.y - (p3.y - p1.y) / 6;
+                    d += `C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y} `;
+                }
+
+                // faint "ribbon" drop to its own baseline for a subtle 3D shelf effect
+                const baseY = padT + oy + plotH;
+                const ribbonD = d + ` L ${points[points.length - 1].x} ${baseY} L ${points[0].x} ${baseY} Z`;
+                svg.appendChild(svgEl('path', { d: ribbonD, fill: color, opacity: 0.10, stroke: 'none' }));
+
+                svg.appendChild(svgEl('path', { d, fill: 'none', stroke: color, 'stroke-width': 2.2, opacity: 0.95 }));
+
+                points.forEach(p => {
+                    svg.appendChild(svgEl('circle', { cx: p.x, cy: p.y, r: 2.4, fill: color }));
+                });
+
+                // depth connector + label at the last point, staggered per series
+                const last = points[points.length - 1];
+                svg.appendChild(svgEl('line', {
+                    x1: last.x, y1: last.y, x2: last.x + depthX * 0.6, y2: last.y - depthY * 0.6,
+                    stroke: color, 'stroke-width': 1, opacity: 0.5
+                }));
+            }
+
+            // x-axis month labels along the nearest (front) series baseline
+            monthList.forEach((m, i) => {
+                const x = padL + bandW * i + bandW / 2;
+                const xLabel = svgEl('text', {
+                    x, y: H - 6, fill: '#cfd8e3', 'font-size': 8.5, 'font-weight': 600,
+                    'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif'
+                });
+                xLabel.textContent = m.slice(0, 3);
+                svg.appendChild(xLabel);
+            });
+
+            wrap.appendChild(svg);
+
+            // legend for the 5 plotted categories
+            top5.forEach(cat => {
+                const row = document.createElement('div');
+                row.className = 'top5-legend-item';
+                row.innerHTML = `<span class="top5-legend-dot" style="background:${catColors[cat]}"></span><span>${cat}</span>`;
+                legendBox.appendChild(row);
+            });
+        }
+
+        // ---------- Plan vs Actual grouped bar chart ----------
+        function buildPlanActualChart(monthList, monthTotals, wrapId) {
+            const wrap = document.getElementById(wrapId || 'planActualChart-wrap');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+
+            const W = 480, H = 210;
+            const padL = 44, padR = 12, padT = 24, padB = 26;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet' });
+
+            if (monthList.length === 0) {
+                const t = svgEl('text', { x: W / 2, y: H / 2, fill: '#cfd8e3', 'font-size': 11, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif' });
+                t.textContent = 'No months selected';
+                svg.appendChild(t);
+                wrap.appendChild(svg);
+                return;
+            }
+
+            const actualVals = monthList.map(m => monthTotals[m] || 0);
+            const planVals = monthList.map(() => PLAN_MONTHLY);
+            const axis = niceTicks(Math.max(1, ...actualVals, ...planVals), 5);
+            const maxVal = axis.max;
+
+            axis.ticks.forEach(val => {
+                const y = padT + plotH - (val / maxVal) * plotH;
+                svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: y, y2: y, stroke: 'rgba(255,255,255,0.07)', 'stroke-width': 1 }));
+                const label = svgEl('text', { x: padL - 6, y: y + 3, fill: '#cfd8e3', 'font-size': 9, 'text-anchor': 'end', 'font-family': 'Rajdhani, sans-serif' });
+                label.textContent = fmtK(val);
+                svg.appendChild(label);
+            });
+
+            const n = monthList.length;
+            const bandW = plotW / n;
+            const barW = Math.min(20, bandW * 0.32);
+            const gap = 4;
+
+            monthList.forEach((m, i) => {
+                const cx = padL + bandW * i + bandW / 2;
+                const actual = actualVals[i];
+                const plan = planVals[i];
+
+                const aH = (actual / maxVal) * plotH;
+                const aX = cx - gap / 2 - barW;
+                const aY = padT + plotH - aH;
+                const overBudget = actual > plan;
+                const actualColor = overBudget ? '#e0303f' : '#3f7bfa';
+                svg.appendChild(svgEl('rect', { x: aX, y: aY, width: barW, height: Math.max(aH, 0), fill: actualColor, rx: 1.5 }));
+                if (aH > 12) {
+                    const t = svgEl('text', { x: aX + barW / 2, y: aY - 4, fill: overBudget ? '#ff8a8a' : '#cfd8e3', 'font-size': 7.5, 'font-weight': 600, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif' });
+                    t.textContent = fmtK(trimNum(actual, 0));
+                    svg.appendChild(t);
+                }
+
+                const pH = (plan / maxVal) * plotH;
+                const pX = cx + gap / 2;
+                const pY = padT + plotH - pH;
+                svg.appendChild(svgEl('rect', { x: pX, y: pY, width: barW, height: Math.max(pH, 0), fill: '#f5a623', rx: 1.5 }));
+                if (pH > 12) {
+                    const t = svgEl('text', { x: pX + barW / 2, y: pY - 4, fill: '#cfd8e3', 'font-size': 7.5, 'font-weight': 600, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif' });
+                    t.textContent = fmtK(trimNum(plan, 0));
+                    svg.appendChild(t);
+                }
+
+                const xLabel = svgEl('text', { x: cx, y: H - 6, fill: '#cfd8e3', 'font-size': 8.5, 'font-weight': 600, 'text-anchor': 'middle', 'font-family': 'Rajdhani, sans-serif' });
+                xLabel.textContent = m.slice(0, 3);
+                svg.appendChild(xLabel);
+            });
+
+            wrap.appendChild(svg);
+        }
+
+        function refreshDashboard() {
+            const monthList = activeMonths();
+            const catTotals = computeCategoryTotals();
+            const grandTotal = computeGrandTotal(catTotals);
+            const monthTotals = computeMonthTotals();
+
+            renderStats(catTotals, grandTotal);
+            buildBarChart(monthList, catTotals);
+            buildLineChart(monthList, monthTotals);
+            buildTop5Chart(monthList);
+            buildPlanActualChart(monthList, monthTotals);
+
+            document.getElementById('mini-total-actual').textContent = moneyFull(grandTotal);
+            document.getElementById('mini-total-planned').textContent = moneyFull(PLAN_ANNUAL);
+            document.getElementById('mini-plan-current').textContent = moneyFull(PLAN_MONTHLY * monthList.length);
+
+            renderExpandedChart();
+        }
+
+        // ---------- expand-on-double-click for each chart ----------
+        const chartExpandOverlay = document.getElementById('chart-expand-overlay');
+        const chartExpandTitle = document.getElementById('chart-expand-title');
+        const chartExpandBody = document.getElementById('chart-expand-body');
+        const chartExpandClose = document.getElementById('chart-expand-close');
+
+        const CHART_TITLES = {
+            bar: 'Total Spending Per Month',
+            plan: 'Plan vs Actual Per Month',
+            line: 'Range of Items Spent Per Month',
+            top5: 'Top 5 Categories by Spend'
+        };
+
+        function isChartExpanded() {
+            return chartExpandOverlay.classList.contains('show');
+        }
+
+        function expandChart(type) {
+            if (!CHART_TITLES[type]) return;
+            chartExpandTitle.textContent = CHART_TITLES[type];
+
+            if (type === 'bar') {
+                chartExpandBody.innerHTML =
+                    '<div class="expand-chart-row">' +
+                    '<div class="expand-chart-canvas" id="expand-wrap"></div>' +
+                    '<div class="legend-box expand-legend-box"><div class="legend-title">Category</div><div id="expand-legend"></div></div>' +
+                    '</div>';
+            } else if (type === 'plan') {
+                chartExpandBody.innerHTML =
+                    '<div class="expand-chart-canvas full" id="expand-wrap"></div>' +
+                    '<div class="plan-actual-legend">' +
+                    '<span class="pa-legend-item"><span class="pa-dot actual"></span>Actual</span>' +
+                    '<span class="pa-legend-item"><span class="pa-dot planned"></span>Plan</span>' +
+                    '<span class="pa-legend-item"><span class="pa-dot over"></span>Actual Over Exceed</span>' +
+                    '</div>';
+            } else if (type === 'line') {
+                chartExpandBody.innerHTML = '<div class="expand-chart-canvas full" id="expand-wrap"></div>';
+            } else if (type === 'top5') {
+                chartExpandBody.innerHTML =
+                    '<div class="expand-chart-canvas full" id="expand-wrap"></div>' +
+                    '<div class="top5-legend" id="expand-legend"></div>';
+            }
+
+            chartExpandOverlay.dataset.chartType = type;
+            chartExpandOverlay.classList.add('show');
+            renderExpandedChart();
+        }
+
+        function closeExpandedChart() {
+            chartExpandOverlay.classList.remove('show');
+            chartExpandBody.innerHTML = '';
+        }
+
+        function renderExpandedChart() {
+            if (!isChartExpanded()) return;
+            const type = chartExpandOverlay.dataset.chartType;
+            const monthList = activeMonths();
+
+            if (type === 'bar') {
+                buildBarChart(monthList, computeCategoryTotals(), 'expand-wrap');
+                renderLegend('expand-legend');
+            } else if (type === 'plan') {
+                buildPlanActualChart(monthList, computeMonthTotals(), 'expand-wrap');
+            } else if (type === 'line') {
+                buildLineChart(monthList, computeMonthTotals(), 'expand-wrap');
+            } else if (type === 'top5') {
+                buildTop5Chart(monthList, 'expand-wrap', 'expand-legend');
+            }
+        }
+
+        document.querySelectorAll('[data-chart-type]').forEach(card => {
+            card.addEventListener('dblclick', () => {
+                expandChart(card.getAttribute('data-chart-type'));
+            });
+        });
+
+        chartExpandClose.addEventListener('click', closeExpandedChart);
+        chartExpandOverlay.addEventListener('click', (e) => {
+            if (e.target === chartExpandOverlay) closeExpandedChart();
+        });
+
+        renderFilters();
+        renderLegend();
+        refreshDashboard();
+
+        // ---------- "My go to eat" page: fast-food search + origin/destination routing ----------
+        // Built on Leaflet + OpenStreetMap (free, no API key needed) instead of the Google
+        // embed, because real click-to-set-destination and route/distance calculation
+        // require JS access into the map, which a keyless Google iframe can't provide.
+        const EAT_LAT = 4.8973265;
+        const EAT_LNG = 114.845967;
+
+        let eatMap = null;
+        let originMarker = null;
+        let destinationMarker = null;
+        let routingControl = null;
+        let eatMapInitialized = false;
+        let originSelectMode = false;
+        let destinationSelectMode = false;
+
+        function resetOriginButton() {
+            const btn = document.getElementById('btn-select-origin');
+            btn.classList.remove('waiting');
+            btn.textContent = '🗺️ Select Location on Map';
+        }
+
+        function resetDestinationButton() {
+            const btn = document.getElementById('btn-select-destination');
+            btn.classList.remove('waiting');
+            btn.textContent = '🗺️ Select Destination';
+        }
+
+        function initEatMap() {
+            if (eatMapInitialized) return;
+            eatMapInitialized = true;
+
+            eatMap = L.map('eat-map').setView([EAT_LAT, EAT_LNG], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(eatMap);
+
+            eatMap.on('click', (e) => {
+                if (originSelectMode) {
+                    setOrigin(e.latlng.lat, e.latlng.lng);
+                    originSelectMode = false;
+                    resetOriginButton();
+                } else if (destinationSelectMode) {
+                    setDestination(e.latlng.lat, e.latlng.lng);
+                    destinationSelectMode = false;
+                    resetDestinationButton();
+                }
+            });
+        }
+
+        // home icon for the origin marker, car icon for the destination marker
+        const homeIcon = L.divIcon({
+            html: '<div style="font-size:26px; line-height:1; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));">\u{1F3E0}</div>',
+            className: 'origin-marker-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 28],
+            popupAnchor: [0, -26]
+        });
+
+        const carIcon = L.divIcon({
+            html: '<div style="font-size:26px; line-height:1; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));">\u{1F697}</div>',
+            className: 'destination-marker-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 28],
+            popupAnchor: [0, -26]
+        });
+
+        function setOrigin(lat, lng) {
+            document.getElementById('origin-lat').value = lat.toFixed(6);
+            document.getElementById('origin-lng').value = lng.toFixed(6);
+            document.getElementById('origin-status').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+            if (!eatMap) return;
+            if (originMarker) {
+                originMarker.setLatLng([lat, lng]);
+            } else {
+                originMarker = L.marker([lat, lng], { icon: homeIcon }).addTo(eatMap).bindPopup('Origin');
+            }
+            eatMap.panTo([lat, lng]);
+        }
+
+        function setDestination(lat, lng) {
+            document.getElementById('destination-status').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+            if (!eatMap) return;
+            if (destinationMarker) {
+                destinationMarker.setLatLng([lat, lng]);
+            } else {
+                destinationMarker = L.marker([lat, lng], { icon: carIcon }).addTo(eatMap).bindPopup('Destination');
+            }
+        }
+
+        function generateRoute() {
+            if (!eatMap) return;
+            if (!originMarker || !destinationMarker) {
+                document.getElementById('km-value').textContent = '\u2014 km';
+                alert('Please set both an origin and a destination first.');
+                return;
+            }
+
+            if (routingControl) {
+                eatMap.removeControl(routingControl);
+                routingControl = null;
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: [originMarker.getLatLng(), destinationMarker.getLatLng()],
+                router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+                lineOptions: { styles: [{ color: '#22d3ee', weight: 5, opacity: 0.85 }] },
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: true,
+                show: false,
+                createMarker: () => null
+            }).addTo(eatMap);
+
+            routingControl.on('routesfound', (e) => {
+                const km = e.routes[0].summary.totalDistance / 1000;
+                document.getElementById('km-value').textContent = km.toFixed(1) + ' km';
+            });
+
+            routingControl.on('routingerror', () => {
+                document.getElementById('km-value').textContent = '\u2014 km';
+                alert('Could not calculate a route between those two points.');
+            });
+        }
+
+        document.getElementById('btn-select-origin').addEventListener('click', () => {
+            const btn = document.getElementById('btn-select-origin');
+            originSelectMode = !originSelectMode;
+            if (originSelectMode) {
+                destinationSelectMode = false;
+                resetDestinationButton();
+                btn.classList.add('waiting');
+                btn.textContent = 'Click on the map...';
+                document.getElementById('origin-status').textContent = 'Click on the map to set origin';
+            } else {
+                btn.classList.remove('waiting');
+                btn.textContent = '🗺️ Select Location on Map';
+            }
+        });
+
+        document.getElementById('btn-confirm-origin').addEventListener('click', () => {
+            const lat = parseFloat(document.getElementById('origin-lat').value);
+            const lng = parseFloat(document.getElementById('origin-lng').value);
+            if (Number.isNaN(lat) || Number.isNaN(lng)) {
+                document.getElementById('origin-status').textContent = 'Enter valid coordinates';
+                return;
+            }
+            setOrigin(lat, lng);
+        });
+
+        document.getElementById('btn-select-destination').addEventListener('click', () => {
+            const btn = document.getElementById('btn-select-destination');
+            destinationSelectMode = !destinationSelectMode;
+            if (destinationSelectMode) {
+                originSelectMode = false;
+                resetOriginButton();
+                btn.classList.add('waiting');
+                btn.textContent = 'Click on the map...';
+                document.getElementById('destination-status').textContent = 'Click on the map to set destination';
+            } else {
+                btn.classList.remove('waiting');
+                btn.textContent = '🗺️ Select Destination';
+            }
+        });
+
+        document.getElementById('btn-generate-route').addEventListener('click', generateRoute);
+
+        function clearRoute() {
+            if (originMarker && eatMap) { eatMap.removeLayer(originMarker); }
+            if (destinationMarker && eatMap) { eatMap.removeLayer(destinationMarker); }
+            if (routingControl && eatMap) { eatMap.removeControl(routingControl); }
+            originMarker = null;
+            destinationMarker = null;
+            routingControl = null;
+            originSelectMode = false;
+            destinationSelectMode = false;
+
+            resetOriginButton();
+            resetDestinationButton();
+
+            document.getElementById('origin-lat').value = '';
+            document.getElementById('origin-lng').value = '';
+            document.getElementById('origin-status').textContent = 'Not set';
+            document.getElementById('destination-status').textContent = 'Not set';
+            document.getElementById('km-value').textContent = '\u2014 km';
+        }
+
+        document.getElementById('btn-clear-route').addEventListener('click', clearRoute);
+
+        document.getElementById('btn-go-entertainment').addEventListener('click', () => {
+            openComingSoonModal();
+        });
+        document.getElementById('btn-go-travel').addEventListener('click', () => {
+            openComingSoonModal();
+        });
+
+        // ---------- ESC to exit the dashboard back to the default screen ----------
+        const exitOverlay = document.getElementById('exit-confirm-overlay');
+        const btnExitCancel = document.getElementById('btn-exit-cancel');
+        const btnExitConfirm = document.getElementById('btn-exit-confirm');
+
+        function isExitModalOpen() {
+            return exitOverlay.classList.contains('show');
+        }
+
+        function openExitModal() {
+            exitOverlay.classList.add('show');
+        }
+
+        function closeExitModal() {
+            exitOverlay.classList.remove('show');
+        }
+
+        function goToDefaultView() {
+            document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
+            document.querySelectorAll('.header-nav > .nav-item > a').forEach(l => l.classList.remove('active'));
+            const homeLink = Array.from(document.querySelectorAll('.header-nav > .nav-item > a')).find(a => a.textContent.trim() === 'Home Page');
+            if (homeLink) homeLink.classList.add('active');
+            showView('default');
+        }
+
+        btnExitConfirm.addEventListener('click', () => {
+            closeExitModal();
+            goToDefaultView();
+        });
+
+        btnExitCancel.addEventListener('click', () => {
+            closeExitModal();
+        });
+
+        exitOverlay.addEventListener('click', (e) => {
+            if (e.target === exitOverlay) closeExitModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+
+            if (isChartExpanded()) {
+                closeExpandedChart();
+                return;
+            }
+
+            if (comingSoonOverlay.classList.contains('show')) {
+                closeComingSoonModal();
+                return;
+            }
+
+            if (isExitModalOpen()) {
+                closeExitModal();
+                return;
+            }
+
+            const lifetimeView = document.getElementById('view-lifetime');
+            if (lifetimeView && lifetimeView.classList.contains('active')) {
+                openExitModal();
+                return;
+            }
+
+            goToDefaultView();
+        });
+
+        /* =========================================================
+           LIVE DATA SOURCE CONNECTION
+           Reads "PowerBI-Total-2026" straight out of the user's own
+           Power BI - Fortuna 2026.xlsx workbook, in the browser.
+
+           Browsers can't reach into an arbitrary C:\ path on their own
+           (that's blocked for security reasons in every browser), so the
+           workbook is opened once via a native file picker. From then on
+           the page keeps the file handle, re-reads it on an interval, and
+           reflects any changes you save in Excel without you re-picking it.
+        ========================================================= */
+
+        const DS_DB_NAME = 'fortuna-dashboard';
+        const DS_STORE = 'handles';
+        const DS_KEY = 'workbook';
+        const SHEET_NAME = 'PowerBI-Total-2026';
+        const POLL_MS = 10000;
+
+        let dsFileHandle = null;
+        let dsLastModified = 0;
+        let dsPollTimer = null;
+
+        const dsDot = document.getElementById('ds-dot');
+        const dsStatusText = document.getElementById('ds-status-text');
+        const btnConnect = document.getElementById('btn-connect-source');
+        const btnRefresh = document.getElementById('btn-refresh-source');
+        const fallbackInput = document.getElementById('fallback-file-input');
+
+        function dsSetStatus(text, mode) {
+            dsStatusText.textContent = text;
+            dsDot.classList.remove('live', 'error');
+            if (mode) dsDot.classList.add(mode);
+        }
+
+        function idbOpen() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DS_DB_NAME, 1);
+                req.onupgradeneeded = () => req.result.createObjectStore(DS_STORE);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function idbSet(key, value) {
+            const db = await idbOpen();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(DS_STORE, 'readwrite');
+                tx.objectStore(DS_STORE).put(value, key);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function idbGet(key) {
+            const db = await idbOpen();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(DS_STORE, 'readonly');
+                const req = tx.objectStore(DS_STORE).get(key);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        // turn worksheet rows (Category, Date, Month, Spending) into { month: { category: total } }
+        function parseWorkbookToModel(workbook) {
+            const sheet = workbook.Sheets[SHEET_NAME];
+            if (!sheet) {
+                throw new Error(`Sheet "${SHEET_NAME}" not found in this workbook`);
+            }
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
+            const model = {};
+            const catSet = new Set();
+
+            rows.forEach(row => {
+                const cat = row['Category'];
+                const month = row['Month'];
+                const spend = row['Spending'];
+                if (!cat || !month || spend === null || spend === undefined || spend === '') return;
+                const val = Number(spend);
+                if (Number.isNaN(val)) return;
+                if (!model[month]) model[month] = {};
+                model[month][cat] = (model[month][cat] || 0) + val;
+                catSet.add(cat);
+            });
+
+            if (Object.keys(model).length === 0) {
+                throw new Error('No rows with Category/Month/Spending values were found');
+            }
+
+            return { model, cats: Array.from(catSet) };
+        }
+
+        async function loadFromHandle(handle, { silent } = {}) {
+            try {
+                const perm = await handle.queryPermission({ mode: 'read' });
+                if (perm !== 'granted') {
+                    const req = await handle.requestPermission({ mode: 'read' });
+                    if (req !== 'granted') {
+                        dsSetStatus('Permission needed \u2014 click "Connect Data Source" to reconnect', 'error');
+                        btnRefresh.disabled = true;
+                        return false;
+                    }
+                }
+                const file = await handle.getFile();
+                if (silent && file.lastModified === dsLastModified) return true; // unchanged, nothing to do
+
+                const buf = await file.arrayBuffer();
+                const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+                const { model, cats } = parseWorkbookToModel(wb);
+
+                setDataModel(model, cats);
+                dsLastModified = file.lastModified;
+                const stamp = new Date().toLocaleTimeString();
+                dsSetStatus(`Live \u2014 ${file.name} \u00b7 last synced ${stamp}`, 'live');
+                btnRefresh.disabled = false;
+                return true;
+            } catch (err) {
+                console.error(err);
+                dsSetStatus('Could not read workbook: ' + err.message, 'error');
+                return false;
+            }
+        }
+
+        function startPolling() {
+            if (dsPollTimer) clearInterval(dsPollTimer);
+            dsPollTimer = setInterval(() => {
+                if (dsFileHandle) loadFromHandle(dsFileHandle, { silent: true });
+            }, POLL_MS);
+        }
+
+        async function connectDataSource() {
+            if (window.showOpenFilePicker) {
+                try {
+                    const [handle] = await window.showOpenFilePicker({
+                        types: [{ description: 'Excel Workbook', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }],
+                        excludeAcceptAllOption: false,
+                        multiple: false
+                    });
+                    dsFileHandle = handle;
+                    await idbSet(DS_KEY, handle);
+                    const ok = await loadFromHandle(handle);
+                    if (ok) startPolling();
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error(err);
+                        dsSetStatus('Connection cancelled or failed', 'error');
+                    }
+                }
+            } else {
+                // Safari / Firefox fallback: no live re-read, but a one-time load works everywhere
+                fallbackInput.click();
+            }
+        }
+
+        fallbackInput.addEventListener('change', async () => {
+            const file = fallbackInput.files[0];
+            if (!file) return;
+            try {
+                const buf = await file.arrayBuffer();
+                const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+                const { model, cats } = parseWorkbookToModel(wb);
+                setDataModel(model, cats);
+                dsSetStatus(`Loaded ${file.name} \u2014 this browser can't watch the file for changes; re-select it after saving updates`, 'live');
+            } catch (err) {
+                console.error(err);
+                dsSetStatus('Could not read workbook: ' + err.message, 'error');
+            }
+        });
+
+        btnConnect.addEventListener('click', connectDataSource);
+        btnRefresh.addEventListener('click', () => {
+            if (dsFileHandle) loadFromHandle(dsFileHandle);
+        });
+
+        // try to silently reconnect to a previously-picked file on page load
+        (async function tryRestoreHandle() {
+            if (!window.showOpenFilePicker) return;
+            try {
+                const handle = await idbGet(DS_KEY);
+                if (!handle) return;
+                dsFileHandle = handle;
+                const perm = await handle.queryPermission({ mode: 'read' });
+                if (perm === 'granted') {
+                    const ok = await loadFromHandle(handle, { silent: false });
+                    if (ok) startPolling();
+                } else {
+                    dsSetStatus('Previously connected \u2014 click "Connect Data Source" to resume live sync', null);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        })();
+    </script>
+</body>
+</html>
